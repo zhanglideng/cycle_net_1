@@ -38,18 +38,17 @@ data_path = '/input/data/'
 train_haze_path = data_path + 'nyu/train/'  # 去雾训练集的路径
 val_haze_path = data_path + 'nyu/val/'  # 去雾验证集的路径
 gt_path = data_path + 'nyu/gth/'
-t_path = data_path + 'nyu/transmission/'
 
 save_path = './cycle_result_' + time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime()) + '/'
 save_model_name = save_path + 'cycle_model.pt'  # 保存模型的路径
 excel_save = save_path + 'result.xls'  # 保存excel的路径
-mid_save_ed_path = './cycle_model/cycle_model.pt'  # 保存的中间模型，用于下一步训练。
+mid_save_ed_path = './mid_model/cycle_model.pt'  # 保存的中间模型，用于下一步训练。
 
 # 初始化excel
 f, sheet_train, sheet_val = init_excel(kind='train')
 
-if os.path.exists('./pre_model/cycle_model.pt'):
-    net = torch.load('./pre_model/cycle_model.pt')
+if os.path.exists('./pre_model/J_model/J_model.pt'):
+    net = torch.load('./pre_model/J_model/J_model.pt')
 else:
     net = cycle().cuda()
 
@@ -59,12 +58,12 @@ if not os.path.exists(save_path):
 # 数据转换模式
 transform = transforms.Compose([transforms.ToTensor()])
 # 读取训练集数据
-train_path_list = [train_haze_path, gt_path, t_path]
+train_path_list = [train_haze_path, gt_path]
 train_data = AtJDataSet(transform, train_path_list)
 train_data_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 
 # 读取验证集数据
-val_path_list = [val_haze_path, gt_path, t_path]
+val_path_list = [val_haze_path, gt_path]
 val_data = AtJDataSet(transform, val_path_list)
 val_data_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 

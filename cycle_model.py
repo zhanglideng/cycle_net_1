@@ -261,7 +261,7 @@ class Encoder(nn.Module):
 
 class cycle(nn.Module):
     def __init__(self):
-        super(AtJ, self).__init__()
+        super(cycle, self).__init__()
         self.encoder_1 = Encoder()
         # self.encoder_2 = Encoder()
         self.decoder_A = Dense_decoder(out_channel=3)

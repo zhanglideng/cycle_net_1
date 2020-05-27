@@ -51,14 +51,12 @@ def init_excel(kind):
         sheet2 = workbook.add_sheet('val', cell_overwrite_ok=True)
         # 通过excel保存训练结果（训练集验证集loss，学习率，训练时间，总训练时间）
         row0 = ["epoch", "itr",
-                "A_L2", "t_L2", "t_ssim",
                 "J_l2", "J_ssim", "J_vgg",
                 "J_re_l2", "J_re_ssim", "J_re_vgg",
                 "I_re_l2", "I_re_ssim", "I_re_vgg",
                 "loss"]
         # row0 = ["epoch", "itr", "l2", "ssim", "loss"]
         row1 = ["epoch",
-                "A_L2", "t_L2", "t_ssim",
                 "J_l2", "J_ssim", "J_vgg",
                 "J_re_l2", "J_re_ssim", "J_re_vgg",
                 "I_re_l2", "I_re_ssim", "I_re_vgg",
@@ -75,7 +73,6 @@ def init_excel(kind):
         sheet1 = workbook.add_sheet('test', cell_overwrite_ok=True)
         # 通过excel保存训练结果（训练集验证集loss，学习率，训练时间，总训练时间）
         row0 = ["num", "A", "beta",
-                "A_L2", "t_L2", "t_ssim",
                 "J_l2", "J_ssim", "J_vgg",
                 "J_re_l2", "J_re_ssim", "J_re_vgg",
                 "I_re_l2", "I_re_ssim", "I_re_vgg",
