@@ -42,7 +42,7 @@ def color_loss(input_image, output_image):
 
 
 def loss_function(image, weight):
-    J, A, t, gt_image, A_gth, t_gth, J_reconstruct, haze_reconstruct, haze_image = image
+    J, gt_image, J_reconstruct, haze_reconstruct, haze_image = image
     loss_train = [l2_loss(J, gt_image),
                   ssim_loss(J, gt_image),
                   vgg_loss(J, gt_image),

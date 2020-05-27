@@ -22,7 +22,7 @@ import time
 import xlwt
 from utils.ms_ssim import *
 
-LR = 0.0001  # 学习率
+LR = 0.0004  # 学习率
 EPOCH = 70  # 轮次
 BATCH_SIZE = 1  # 批大小
 excel_train_line = 1  # train_excel写入的行的下标
@@ -47,8 +47,8 @@ mid_save_ed_path = './mid_model/cycle_model.pt'  # 保存的中间模型，用�
 # 初始化excel
 f, sheet_train, sheet_val = init_excel(kind='train')
 
-if os.path.exists('./pre_model/J_model/J_model.pt'):
-    net = torch.load('./pre_model/J_model/J_model.pt')
+if os.path.exists('/input/pre_model/J_model/cycle_model.pt'):
+    net = torch.load('/input/pre_model/J_model/cycle_model.pt')
 else:
     net = cycle().cuda()
 
@@ -84,12 +84,12 @@ for epoch in range(EPOCH):
     loss = 0
     loss_excel = [0] * loss_num
     net.train()
-    for haze_image, gt_image, A_gth, t_gth in train_data_loader:
+    for haze_image, gt_image in train_data_loader:
         index += 1
         itr += 1
-        J, A, t, J_reconstruct, haze_reconstruct = net(haze_image)
+        J, J_reconstruct, haze_reconstruct = net(haze_image)
         # J, A, t = net(haze_image)
-        loss_image = [J, A, t, gt_image, A_gth, t_gth, J_reconstruct, haze_reconstruct, haze_image]
+        loss_image = [J, gt_image, J_reconstruct, haze_reconstruct, haze_image]
         loss, temp_loss = loss_function(loss_image, weight)
         train_loss += loss.item()
         loss_excel = [loss_excel[i] + temp_loss[i] for i in range(len(loss_excel))]
@@ -110,7 +110,7 @@ for epoch in range(EPOCH):
             print_time(start_time, index, EPOCH, len(train_data_loader), epoch)
             # excel_train_line = write_excel(sheet=sheet_train, data_type='train', line=excel_train_line, epoch=epoch,
             #                               itr=itr, loss=loss_excel, weight=weight)
-            f.save(excel_save)
+            # f.save(excel_save)
             loss_excel = [0] * loss_num
     optimizer.step()
     optimizer.zero_grad()
@@ -119,9 +119,9 @@ for epoch in range(EPOCH):
     val_loss = 0
     with torch.no_grad():
         net.eval()
-        for haze_image, gt_image, A_gth, t_gth in val_data_loader:
-            J, A, t, J_reconstruct, haze_reconstruct = net(haze_image)
-            loss_image = [J, A, t, gt_image, A_gth, t_gth, J_reconstruct, haze_reconstruct, haze_image]
+        for haze_image, gt_image in val_data_loader:
+            J, J_reconstruct, haze_reconstruct = net(haze_image)
+            loss_image = [J, gt_image, J_reconstruct, haze_reconstruct, haze_image]
             loss, temp_loss = loss_function(loss_image, weight)
             loss_excel = [loss_excel[i] + temp_loss[i] for i in range(len(loss_excel))]
     train_loss = train_loss / len(train_data_loader)

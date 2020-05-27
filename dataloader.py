@@ -34,10 +34,9 @@ class AtJDataSet(Dataset):
         print('starting read GroundTruth data...')
         for i in range(len(self.gt_data_list)):
             name = self.gt_data_list[i][:4]
-            self.haze_image_dict[name] = cv2.imread(self.gt_path + name + '.PNG')
-            self.gth_image_dict[name] = cv2.imread(self.gt_path + name + '.PNG')
+            self.haze_image_dict[name] = cv2.imread(self.gt_path + name + '.png')
+            self.gth_image_dict[name] = cv2.imread(self.gt_path + name + '.png')
         self.haze_data_list = self.haze_data_list + self.gt_data_list
-        print(self.haze_data_list)
 
     def __len__(self):
         return self.length
