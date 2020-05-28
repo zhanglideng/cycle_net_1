@@ -50,8 +50,6 @@ class AtJDataSet(Dataset):
             haze_image = self.transform1(haze_image)
             gt_image = self.transform1(gt_image)
 
-        haze_image = haze_image.cuda()
-        gt_image = gt_image.cuda()
         if self.flag == 'train':
             return haze_image, gt_image
         elif self.flag == 'test':

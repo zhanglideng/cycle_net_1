@@ -3,22 +3,32 @@ from utils.ms_ssim import *
 import math
 import torch.nn.functional
 from utils.vgg import Vgg16
+import time
 
+vgg_loss = Vgg16().type(torch.cuda.FloatTensor).cuda()
+mse_loss = torch.nn.MSELoss().cuda()
+l2_loss = torch.nn.MSELoss(reduction='mean').cuda()
+ssim_loss = MS_SSIM(max_val=1, channel=3).cuda()
+'''
+vgg = Vgg16().type(torch.cuda.FloatTensor).cuda()
+loss_mse = torch.nn.MSELoss().cuda()
+l2_loss_fn = torch.nn.MSELoss(reduction='mean').cuda()
+losser = MS_SSIM(max_val=1, channel=3).cuda()
+print('loss初始化成功！')
+'''
 
+'''
 def l2_loss(output, gth):
-    l2_loss_fn = torch.nn.MSELoss(reduction='mean').cuda()
-    return l2_loss_fn(output, gth)
-
+    lo = l2_loss_fn(output, gth)
+    return lo
 
 def ssim_loss(output, gth, channel=3):
-    losser = MS_SSIM(max_val=1, channel=channel).cuda()
-    return 1 - losser(output, gth)
+    lo = 1 - losser(output, gth)
+    return lo
+'''
 
 
 def vgg_loss(output, gth):
-    loss_mse = torch.nn.MSELoss()
-    vgg = Vgg16().type(torch.cuda.FloatTensor).cuda()
-    # vgg = Vgg16().cuda()
     output_features = vgg(output)
     gth_features = vgg(gth)
     sum_loss = loss_mse(output_features[0], gth_features[0]) * 0.25 \
@@ -28,6 +38,7 @@ def vgg_loss(output, gth):
     return sum_loss
 
 
+'''
 def color_loss(input_image, output_image):
     vec1 = input_image.view([-1, 3])
     vec2 = output_image.view([-1, 3])
@@ -39,18 +50,19 @@ def color_loss(input_image, output_image):
     dot = torch.clamp(dot, -clip_value, clip_value)
     angle = torch.acos(dot) * (180 / math.pi)
     return angle.mean()
+'''
 
 
 def loss_function(image, weight):
     J, gt_image, J_reconstruct, haze_reconstruct, haze_image = image
     loss_train = [l2_loss(J, gt_image),
-                  ssim_loss(J, gt_image),
+                  1 - ssim_loss(J, gt_image),
                   vgg_loss(J, gt_image),
                   l2_loss(J_reconstruct, gt_image),
-                  ssim_loss(J_reconstruct, gt_image),
+                  1 - ssim_loss(J_reconstruct, gt_image),
                   vgg_loss(J_reconstruct, gt_image),
                   l2_loss(haze_reconstruct, haze_image),
-                  ssim_loss(haze_reconstruct, haze_image),
+                  1 - ssim_loss(haze_reconstruct, haze_image),
                   vgg_loss(haze_reconstruct, haze_image)]
     loss_sum = 0
     for i in range(len(loss_train)):

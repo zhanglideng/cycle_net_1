@@ -30,7 +30,7 @@ excel_val_line = 1  # val_excel写入的行的下标
 alpha = 1  # 损失函数的权重
 accumulation_steps = 8  # 梯度积累的次数，类似于batch-size=64
 # itr_to_lr = 10000 // BATCH_SIZE  # 训练10000次后损失下降50%
-itr_to_excel = 8 // BATCH_SIZE  # 训练64次后保存相关数据到excel
+itr_to_excel = 128 // BATCH_SIZE  # 训练64次后保存相关数据到excel
 loss_num = 9  # 包括参加训练和不参加训练的loss
 weight = [1, 1, 1, 1, 1, 1, 1, 1, 1]
 
@@ -60,12 +60,12 @@ transform = transforms.Compose([transforms.ToTensor()])
 # 读取训练集数据
 train_path_list = [train_haze_path, gt_path]
 train_data = AtJDataSet(transform, train_path_list)
-train_data_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
+train_data_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=8)
 
 # 读取验证集数据
 val_path_list = [val_haze_path, gt_path]
 val_data = AtJDataSet(transform, val_path_list)
-val_data_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
+val_data_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=8)
 
 # 定义优化器
 optimizer = torch.optim.Adam(net.parameters(), lr=LR, weight_decay=1e-5)
@@ -87,6 +87,8 @@ for epoch in range(EPOCH):
     for haze_image, gt_image in train_data_loader:
         index += 1
         itr += 1
+        haze_image = haze_image.cuda()
+        gt_image = gt_image.cuda()
         J, J_reconstruct, haze_reconstruct = net(haze_image)
         # J, A, t = net(haze_image)
         loss_image = [J, gt_image, J_reconstruct, haze_reconstruct, haze_image]
@@ -106,11 +108,10 @@ for epoch in range(EPOCH):
             print('J_L2=%.5f\n' 'J_SSIM=%.5f\n' 'J_VGG=%.5f\n'
                   'J_re_L2=%.5f\n' 'J_re_SSIM=%.5f\n' 'J_re_VGG=%.5f\n'
                   % (loss_excel[0], loss_excel[1], loss_excel[2], loss_excel[3], loss_excel[4], loss_excel[5]))
-            # print('L2=%.5f\n' 'SSIM=%.5f\n' % (loss_excel[0], loss_excel[1]))
             print_time(start_time, index, EPOCH, len(train_data_loader), epoch)
-            # excel_train_line = write_excel(sheet=sheet_train, data_type='train', line=excel_train_line, epoch=epoch,
-            #                               itr=itr, loss=loss_excel, weight=weight)
-            # f.save(excel_save)
+            excel_train_line = write_excel(sheet=sheet_train, data_type='train', line=excel_train_line, epoch=epoch,
+                                           itr=itr, loss=loss_excel, weight=weight)
+            f.save(excel_save)
             loss_excel = [0] * loss_num
     optimizer.step()
     optimizer.zero_grad()
@@ -120,6 +121,8 @@ for epoch in range(EPOCH):
     with torch.no_grad():
         net.eval()
         for haze_image, gt_image in val_data_loader:
+            haze_image = haze_image.cuda()
+            gt_image = gt_image.cuda()
             J, J_reconstruct, haze_reconstruct = net(haze_image)
             loss_image = [J, gt_image, J_reconstruct, haze_reconstruct, haze_image]
             loss, temp_loss = loss_function(loss_image, weight)
