@@ -18,6 +18,7 @@ class AtJDataSet(Dataset):
         self.haze_path, self.gt_path = path
 
         self.haze_data_list = os.listdir(self.haze_path)
+        # print(self.haze_data_list)
         self.haze_data_list.sort(key=lambda x: int(x[:4]))
         self.gt_data_list = os.listdir(self.gt_path)
         self.gt_data_list.sort(key=lambda x: int(x[:4]))
@@ -42,6 +43,7 @@ class AtJDataSet(Dataset):
         return self.length
 
     def __getitem__(self, idx):
+        print(self.haze_data_list[idx])
         name = self.haze_data_list[idx][:-4]
         haze_image = self.haze_image_dict[name]
         gt_image = self.gth_image_dict[name[:4]]

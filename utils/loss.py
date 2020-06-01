@@ -5,7 +5,7 @@ import torch.nn.functional
 from utils.vgg import Vgg16
 import time
 
-vgg_loss = Vgg16().type(torch.cuda.FloatTensor).cuda()
+vgg_net = Vgg16().type(torch.cuda.FloatTensor).cuda()
 mse_loss = torch.nn.MSELoss().cuda()
 l2_loss = torch.nn.MSELoss(reduction='mean').cuda()
 ssim_loss = MS_SSIM(max_val=1, channel=3).cuda()
@@ -29,12 +29,12 @@ def ssim_loss(output, gth, channel=3):
 
 
 def vgg_loss(output, gth):
-    output_features = vgg(output)
-    gth_features = vgg(gth)
-    sum_loss = loss_mse(output_features[0], gth_features[0]) * 0.25 \
-               + loss_mse(output_features[1], gth_features[1]) * 0.25 \
-               + loss_mse(output_features[2], gth_features[2]) * 0.25 \
-               + loss_mse(output_features[3], gth_features[3]) * 0.25
+    output_features = vgg_net(output)
+    gth_features = vgg_net(gth)
+    sum_loss = mse_loss(output_features[0], gth_features[0]) * 0.25 \
+               + mse_loss(output_features[1], gth_features[1]) * 0.25 \
+               + mse_loss(output_features[2], gth_features[2]) * 0.25 \
+               + mse_loss(output_features[3], gth_features[3]) * 0.25
     return sum_loss
 
 
@@ -69,3 +69,25 @@ def loss_function(image, weight):
         loss_sum = loss_sum + loss_train[i] * weight[i]
         loss_train[i] = loss_train[i].item()
     return loss_sum, loss_train
+
+
+def loss_test(image):
+    J1, J2, J3, gt_image = image
+    loss_train = [l2_loss(J1, J2),
+                  1 - ssim_loss(J1, J2),
+                  vgg_loss(J1, J2),
+                  l2_loss(J2, J3),
+                  1 - ssim_loss(J2, J3),
+                  vgg_loss(J2, J3),
+                  l2_loss(J1, gt_image),
+                  1 - ssim_loss(J1, gt_image),
+                  vgg_loss(J1, gt_image),
+                  l2_loss(J2, gt_image),
+                  1 - ssim_loss(J2, gt_image),
+                  vgg_loss(J2, gt_image),
+                  l2_loss(J3, gt_image),
+                  1 - ssim_loss(J3, gt_image),
+                  vgg_loss(J3, gt_image)]
+    for i in range(len(loss_train)):
+        loss_train[i] = loss_train[i].item()
+    return loss_train

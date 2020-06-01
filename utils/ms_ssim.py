@@ -26,11 +26,16 @@ class MS_SSIM(torch.nn.Module):
         self.max_val = max_val
 
     def _ssim(self, img1, img2, size_average=True):
-
+        # 读取图像的长宽通道
         _, c, w, h = img1.size()
+        # 取wh11中的最小值，卷积核溢出
         window_size = min(w, h, 11)
+        # 制作高斯核的sigma值
         sigma = 1.5 * window_size / 11
+        # 制作高斯卷积核
         window = create_window(window_size, sigma, self.channel).cuda()
+
+        # 对图1 和图2进行卷积
         mu1 = F.conv2d(img1, window, padding=window_size // 2, groups=self.channel)
         mu2 = F.conv2d(img2, window, padding=window_size // 2, groups=self.channel)
 
@@ -52,22 +57,27 @@ class MS_SSIM(torch.nn.Module):
             return ssim_map.mean(), mcs_map.mean()
 
     def ms_ssim(self, img1, img2, levels=5):
-
+        # 创建了一个一维的张量。
         weight = Variable(torch.Tensor([0.0448, 0.2856, 0.3001, 0.2363, 0.1333]).cuda())
 
+        # 创建了两个第一维度为5的张量
         msssim = Variable(torch.Tensor(levels, ).cuda())
         mcs = Variable(torch.Tensor(levels, ).cuda())
         for i in range(levels):
             ssim_map, mcs_map = self._ssim(img1, img2)
+            # 这里传输不同尺度的ssim图
             msssim[i] = ssim_map
             mcs[i] = mcs_map
+            # 这里下采样
             filtered_im1 = F.avg_pool2d(img1, kernel_size=2, stride=2)
             filtered_im2 = F.avg_pool2d(img2, kernel_size=2, stride=2)
+            # 下采样以后重新赋给原值
             img1 = filtered_im1
             img2 = filtered_im2
-
+        # torch.prod返回张量上所有元素的积
         value = (torch.prod(mcs[0:levels - 1] ** weight[0:levels - 1]) *
                  (msssim[levels - 1] ** weight[levels - 1]))
+        print("value=%f" % value)
         return value
 
     def forward(self, img1, img2):

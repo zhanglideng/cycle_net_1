@@ -109,8 +109,8 @@ for epoch in range(EPOCH):
                   'J_re_L2=%.5f\n' 'J_re_SSIM=%.5f\n' 'J_re_VGG=%.5f\n'
                   % (loss_excel[0], loss_excel[1], loss_excel[2], loss_excel[3], loss_excel[4], loss_excel[5]))
             print_time(start_time, index, EPOCH, len(train_data_loader), epoch)
-            excel_train_line = write_excel(sheet=sheet_train, data_type='train', line=excel_train_line, epoch=epoch,
-                                           itr=itr, loss=loss_excel, weight=weight)
+            excel_train_line = write_excel_train(sheet=sheet_train, line=excel_train_line, epoch=epoch,
+                                                 itr=itr, loss=loss_excel, weight=weight)
             f.save(excel_save)
             loss_excel = [0] * loss_num
     optimizer.step()
@@ -134,13 +134,7 @@ for epoch in range(EPOCH):
     print('J_L2=%.5f\n' 'J_SSIM=%.5f\n' 'J_VGG=%.5f\n'
           'J_re_L2=%.5f\n' 'J_re_SSIM=%.5f\n' 'J_re_VGG=%.5f\n'
           % (loss_excel[3], loss_excel[4], loss_excel[5], loss_excel[6], loss_excel[7], loss_excel[8]))
-    excel_val_line = write_excel(sheet=sheet_val,
-                                 data_type='val',
-                                 line=excel_val_line,
-                                 epoch=epoch,
-                                 itr=False,
-                                 loss=[loss_excel, val_loss, train_loss],
-                                 weight=False)
+    excel_val_line = write_excel_val(sheet=sheet_val, line=excel_val_line, epoch=epoch, loss=[loss_excel, val_loss, train_loss])
     f.save(excel_save)
     if val_loss < min_loss:
         min_loss = val_loss
