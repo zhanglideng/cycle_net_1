@@ -89,7 +89,7 @@ for epoch in range(EPOCH):
         itr += 1
         haze_image = haze_image.cuda()
         gt_image = gt_image.cuda()
-        J, J_reconstruct, haze_reconstruct = net(haze_image)
+        J, J_reconstruct, haze_reconstruct = net(haze_image, haze_image)
         # J, A, t = net(haze_image)
         loss_image = [J, gt_image, J_reconstruct, haze_reconstruct, haze_image]
         loss, temp_loss = loss_function(loss_image, weight)
@@ -134,7 +134,8 @@ for epoch in range(EPOCH):
     print('J_L2=%.5f\n' 'J_SSIM=%.5f\n' 'J_VGG=%.5f\n'
           'J_re_L2=%.5f\n' 'J_re_SSIM=%.5f\n' 'J_re_VGG=%.5f\n'
           % (loss_excel[3], loss_excel[4], loss_excel[5], loss_excel[6], loss_excel[7], loss_excel[8]))
-    excel_val_line = write_excel_val(sheet=sheet_val, line=excel_val_line, epoch=epoch, loss=[loss_excel, val_loss, train_loss])
+    excel_val_line = write_excel_val(sheet=sheet_val, line=excel_val_line, epoch=epoch,
+                                     loss=[loss_excel, val_loss, train_loss])
     f.save(excel_save)
     if val_loss < min_loss:
         min_loss = val_loss

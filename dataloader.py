@@ -43,7 +43,6 @@ class AtJDataSet(Dataset):
         return self.length
 
     def __getitem__(self, idx):
-        print(self.haze_data_list[idx])
         name = self.haze_data_list[idx][:-4]
         haze_image = self.haze_image_dict[name]
         gt_image = self.gth_image_dict[name[:4]]

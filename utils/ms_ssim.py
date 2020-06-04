@@ -77,7 +77,7 @@ class MS_SSIM(torch.nn.Module):
         # torch.prod返回张量上所有元素的积
         value = (torch.prod(mcs[0:levels - 1] ** weight[0:levels - 1]) *
                  (msssim[levels - 1] ** weight[levels - 1]))
-        print("value=%f" % value)
+        # print("value=%f" % value)
         return value
 
     def forward(self, img1, img2):

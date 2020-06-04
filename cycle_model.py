@@ -218,6 +218,7 @@ class Encoder(nn.Module):
 
         # print(haze_class)
         self.conv0 = haze_class.features.conv0
+
         self.norm0 = haze_class.features.norm0
         self.relu0 = haze_class.features.relu0
         self.pool0 = haze_class.features.pool0
@@ -241,7 +242,7 @@ class Encoder(nn.Module):
     def forward(self, x, activation='sig'):
         ## 256x256
         x0 = self.pool0(self.relu0(self.norm0(self.conv0(x))))
-
+        print(self.conv0)
         ## 64 X 64
         x1 = self.dense_block1(x0)
         # print x1.size()
@@ -280,7 +281,8 @@ class cycle(nn.Module):
         self.upsample = F.upsample
         self.relu = nn.ReLU(inplace=True)
 
-    def forward(self, x, activation='sig'):
+    def forward(self, x, hazy, activation='sig'):
+        # x = torch.cat([x, hazy], 1)
         x1, x2, x4 = self.encoder_1(x)
         A = self.decoder_A(x, x1, x2, x4)
         t = self.decoder_t(x, x1, x2, x4, activation='sig')
@@ -295,13 +297,3 @@ class cycle(nn.Module):
         J_reconstruct = (x - A * (1 - t1)) / t1
 
         return J, J_reconstruct, haze_reconstruct
-
-
-'''
-/home/aistudio/external-libraries/torch/nn/functional.py:2481: 
-UserWarning: nn.functional.upsample_nearest is deprecated. Use nn.functional.interpolate instead.
-  warnings.warn("nn.functional.upsample_nearest is deprecated. Use nn.functional.interpolate instead.")
-/home/aistudio/external-libraries/torch/nn/functional.py:2351: 
-UserWarning: nn.functional.upsample is deprecated. Use nn.functional.interpolate instead.
-  warnings.warn("nn.functional.upsample is deprecated. Use nn.functional.interpolate instead.")
-'''
