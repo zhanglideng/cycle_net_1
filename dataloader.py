@@ -10,7 +10,7 @@ import torch
 
 # 一次性读入所有数据
 # nyu/test/1318_a=0.55_b=1.21.png
-class AtJDataSet(Dataset):
+class Cycle_DataSet(Dataset):
     def __init__(self, transform1, path=None, flag='train'):
         # print(path)
         self.flag = flag
@@ -23,10 +23,10 @@ class AtJDataSet(Dataset):
         self.gt_data_list = os.listdir(self.gt_path)
         self.gt_data_list.sort(key=lambda x: int(x[:4]))
 
-        self.length = len(os.listdir(self.haze_path))
         self.haze_image_dict = {}
         self.gth_image_dict = {}
         # 读入数据
+        # 为t提供Gth，如果是有雾图像则加载实际β，如果是无雾图像，则加载β为0.01
         print('starting read image data...')
         for i in range(len(self.haze_data_list)):
             name = self.haze_data_list[i][:-4]
@@ -38,6 +38,8 @@ class AtJDataSet(Dataset):
             self.haze_image_dict[name] = cv2.imread(self.gt_path + name + '.png')
             self.gth_image_dict[name] = cv2.imread(self.gt_path + name + '.png')
         self.haze_data_list = self.haze_data_list + self.gt_data_list
+        self.length = len(self.haze_data_list)
+        print(self.haze_data_list)
 
     def __len__(self):
         return self.length

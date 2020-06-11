@@ -73,25 +73,25 @@ for haze_name, haze_image, gt_image in test_data_loader:
         # J = net(haze_image)
         haze_image = haze_image.cuda()
         gt_image = gt_image.cuda()
-        J1, J_reconstruct1, haze_reconstruct1 = net(haze_image)
-        J2, J_reconstruct2, haze_reconstruct2 = net(J1)
-        J3, J_reconstruct3, haze_reconstruct3 = net(J2)
-        loss_image = [J1, J2, J3, gt_image]
+        J1, J_reconstruct1, haze_reconstruct1 = net(haze_image, haze_image)
+        J2, J_reconstruct2, haze_reconstruct2 = net(J_reconstruct1, haze_image)
+        J3, J_reconstruct3, haze_reconstruct3 = net(J_reconstruct2, haze_image)
+        loss_image = [J_reconstruct1, J_reconstruct2, J_reconstruct3, gt_image]
         loss = loss_test(loss_image)
 
         excel_test_line = write_excel_test(sheet=sheet_test, line=excel_test_line, name=haze_name[0], loss=loss)
         f.save(excel_save)
-        '''
-        im_output_for_save = get_image_for_save(J1)
+        
+        im_output_for_save = get_image_for_save(J_reconstruct1)
         filename = haze_name[0] + '_1.bmp'
         cv2.imwrite(os.path.join(save_path, filename), im_output_for_save)
 
-        im_output_for_save = get_image_for_save(J2)
+        im_output_for_save = get_image_for_save(J_reconstruct2)
         filename = haze_name[0] + '_2.bmp'
         cv2.imwrite(os.path.join(save_path, filename), im_output_for_save)
 
-        im_output_for_save = get_image_for_save(J3)
+        im_output_for_save = get_image_for_save(J_reconstruct3)
         filename = haze_name[0] + '_3.bmp'
         cv2.imwrite(os.path.join(save_path, filename), im_output_for_save)
-        '''
+        
 print("Finished!")

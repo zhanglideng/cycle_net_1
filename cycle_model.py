@@ -148,7 +148,7 @@ class Dense_decoder(nn.Module):
         self.trans_block8 = TransitionBlock(64, 16)
         self.residual_block81 = ResidualBlock(16)
         self.residual_block82 = ResidualBlock(16)
-        self.conv_refin = nn.Conv2d(19, 20, 3, 1, 1)
+        self.conv_refin = nn.Conv2d(22, 20, 3, 1, 1)
         self.tanh = nn.Tanh()
         self.conv1010 = nn.Conv2d(20, 1, kernel_size=1, stride=1, padding=0)  # 1mm
         self.conv1020 = nn.Conv2d(20, 1, kernel_size=1, stride=1, padding=0)  # 1mm
@@ -218,7 +218,8 @@ class Encoder(nn.Module):
 
         # print(haze_class)
         self.conv0 = haze_class.features.conv0
-
+        self.conv0 = nn.Conv2d(6, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        # nn.Conv2d(20, 1, kernel_size=1, stride=1, padding=0)
         self.norm0 = haze_class.features.norm0
         self.relu0 = haze_class.features.relu0
         self.pool0 = haze_class.features.pool0
@@ -242,7 +243,7 @@ class Encoder(nn.Module):
     def forward(self, x, activation='sig'):
         ## 256x256
         x0 = self.pool0(self.relu0(self.norm0(self.conv0(x))))
-        print(self.conv0)
+        # print(self.conv0)
         ## 64 X 64
         x1 = self.dense_block1(x0)
         # print x1.size()
@@ -282,7 +283,8 @@ class cycle(nn.Module):
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x, hazy, activation='sig'):
-        # x = torch.cat([x, hazy], 1)
+        hazy_image = x
+        x = torch.cat([x, hazy], 1)
         x1, x2, x4 = self.encoder_1(x)
         A = self.decoder_A(x, x1, x2, x4)
         t = self.decoder_t(x, x1, x2, x4, activation='sig')
@@ -294,6 +296,6 @@ class cycle(nn.Module):
         t1 = t1.repeat(1, 3, 1, 1)
 
         haze_reconstruct = J * t + A * (1 - t)
-        J_reconstruct = (x - A * (1 - t1)) / t1
+        J_reconstruct = (hazy_image - A * (1 - t1)) / t1
 
         return J, J_reconstruct, haze_reconstruct

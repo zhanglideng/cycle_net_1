@@ -23,7 +23,7 @@ import xlwt
 from utils.ms_ssim import *
 
 LR = 0.0004  # 学习率
-EPOCH = 70  # 轮次
+EPOCH = 200  # 轮次
 BATCH_SIZE = 1  # 批大小
 excel_train_line = 1  # train_excel写入的行的下标
 excel_val_line = 1  # val_excel写入的行的下标
@@ -31,8 +31,9 @@ alpha = 1  # 损失函数的权重
 accumulation_steps = 8  # 梯度积累的次数，类似于batch-size=64
 # itr_to_lr = 10000 // BATCH_SIZE  # 训练10000次后损失下降50%
 itr_to_excel = 128 // BATCH_SIZE  # 训练64次后保存相关数据到excel
-loss_num = 9  # 包括参加训练和不参加训练的loss
+
 weight = [1, 1, 1, 1, 1, 1, 1, 1, 1]
+loss_num = len(weight)  # 包括参加训练和不参加训练的loss
 
 data_path = '/input/data/'
 train_haze_path = data_path + 'nyu/train/'  # 去雾训练集的路径
@@ -47,8 +48,8 @@ mid_save_ed_path = './mid_model/cycle_model.pt'  # 保存的中间模型，用�
 # 初始化excel
 f, sheet_train, sheet_val = init_excel(kind='train')
 
-if os.path.exists('/input/pre_model/J_model/cycle_model.pt'):
-    net = torch.load('/input/pre_model/J_model/cycle_model.pt')
+if os.path.exists('/input/pre_model/AtJ_model/cycle_model.pt'):
+    net = torch.load('/input/pre_model/AtJ_model/cycle_model.pt')
 else:
     net = cycle().cuda()
 
@@ -69,7 +70,7 @@ val_data_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True, num_
 
 # 定义优化器
 optimizer = torch.optim.Adam(net.parameters(), lr=LR, weight_decay=1e-5)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=35, gamma=0.7)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.7)
 
 min_loss = 999999999
 min_epoch = 0
@@ -123,7 +124,7 @@ for epoch in range(EPOCH):
         for haze_image, gt_image in val_data_loader:
             haze_image = haze_image.cuda()
             gt_image = gt_image.cuda()
-            J, J_reconstruct, haze_reconstruct = net(haze_image)
+            J, J_reconstruct, haze_reconstruct = net(haze_image, haze_image)
             loss_image = [J, gt_image, J_reconstruct, haze_reconstruct, haze_image]
             loss, temp_loss = loss_function(loss_image, weight)
             loss_excel = [loss_excel[i] + temp_loss[i] for i in range(len(loss_excel))]
