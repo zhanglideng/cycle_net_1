@@ -13,12 +13,18 @@ import cv2
 import gc
 import time
 
-train_path = '/input/data/nyu/train/'
-val_path = '/input/data/nyu/val/'
-test_path = '/input/data/nyu/test/'
-gth_path = '/input/data/nyu/gth/'
+train_hazy_path = '/input/data/nyu/train_hazy/'
+val_hazy_path = '/input/data/nyu/val_hazy/'
+test_hazy_path = '/input/data/nyu/test_hazy/'
 
-t_path = '/input/data/nyu/transmission/'
+train_gth_path = '/input/data/nyu/train_gth/'
+val_gth_path = '/input/data/nyu/val_gth/'
+test_gth_path = '/input/data/nyu/test_gth/'
+
+train_t_gth_path = '/input/data/nyu/train_t_gth/'
+val_t_gth_path = '/input/data/nyu/val_t_gth/'
+test_t_gth_path = '/input/data/nyu/test_t_gth/'
+
 mat_path = '/input/data/nyu_depth_v2_labeled.mat'
 
 haze_num = 1  # 无雾图生成几张有雾图
@@ -54,14 +60,14 @@ def Guidedfilter(im, p, r, eps):
 
 
 if __name__ == '__main__':
-
     # color_shift = 0  # 合成无偏差的有雾图
-
+    path = [train_hazy_path, val_hazy_path, test_hazy_path,
+            train_gth_path, val_gth_path, test_gth_path,
+            train_t_gth_path, val_t_gth_path, test_t_gth_path]
+    for i in path:
+        if not os.path.exists(i):
+            os.makedirs(i)
     f = h5py.File(mat_path)
-    if not os.path.exists(t_path):
-        os.makedirs(t_path)
-    if not os.path.exists(gth_path):
-        os.makedirs(gth_path)
     depths = f['depths']
     images = f['images']
     print(depths.shape)
@@ -78,13 +84,17 @@ if __name__ == '__main__':
     start = time.time()
     for i in range(length):
         if i < length * 0.8 - 1:
-            path = train_path
+            hazy_path = train_hazy_path
+            gth_path = train_gth_path
+            t_gth_path = train_t_gth_path
         elif i <= length * 0.9 - 1:
-            path = val_path
+            hazy_path = val_hazy_path
+            gth_path = val_gth_path
+            t_gth_path = val_t_gth_path
         else:
-            path = test_path
-        if not os.path.exists(path):
-            os.makedirs(path)
+            hazy_path = test_hazy_path
+            gth_path = test_gth_path
+            t_gth_path = test_t_gth_path
         depth = depths[i]
         m = depth.max()
         depth = depth / m
@@ -92,8 +102,8 @@ if __name__ == '__main__':
         print('dealing:' + str(i) + '.png')
         image_gray = image[0] * 0.299 + image[1] * 0.587 + image[2] * 0.114
         depth = Guidedfilter(image_gray, depth, 14, 0.0001)
-        # depth_index_path = depth_path + str(i) + '.npy'
-        # np.save(depth_index_path, depth)
+        depth_index_path = t_gth_path + '0' * (4 - len(str(i))) + str(i) + '.npy'
+        np.save(depth_index_path, depth)
 
         r = Image.fromarray(images[i][0]).convert('L')
         g = Image.fromarray(images[i][1]).convert('L')
@@ -113,19 +123,13 @@ if __name__ == '__main__':
             fog_density = round(random.uniform(0.8, 1.0), 2)
 
             t = np.exp(-1 * fog_density * depth)
-            t_index_path = t_path + '0' * (4 - len(str(i))) + str(i) + '_a=' + '%.02f' % fog_A + '_b=' + '%.02f' % fog_density + '.npy'
-            np.save(t_index_path, t)
-
             t = np.expand_dims(t, axis=0)
             t = np.concatenate((t, t, t))
-            # print(image.shape)
-            # print(t.shape)
-            # print(map_A.shape)
-            # print(noise.shape)
             image_out = np.add(np.multiply(image, t), np.add(255 * np.multiply(map_A, (1 - t)), noise))
             image_out[image_out < 0] = 0
             image_out[image_out > 255] = 255
-            image_path = path + '0' * (4 - len(str(i))) + str(i) + '_a=' + '%.02f' % fog_A + '_b=' + '%.02f' % fog_density + '.png'
+            image_path = hazy_path + '0' * (4 - len(str(i))) + str(
+                i) + '_a=' + '%.02f' % fog_A + '_b=' + '%.02f' % fog_density + '.png'
             image_out = np.swapaxes(image_out, 0, 2)
             image_out = np.swapaxes(image_out, 0, 1)
             image_out = Image.fromarray(image_out.astype('uint8')).convert('RGB')

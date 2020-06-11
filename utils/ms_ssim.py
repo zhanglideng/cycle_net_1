@@ -54,7 +54,8 @@ class MS_SSIM(torch.nn.Module):
         ssim_map = ((2 * mu1_mu2 + C1) * V1) / ((mu1_sq + mu2_sq + C1) * V2)
         mcs_map = V1 / V2
         if size_average:
-            return ssim_map.mean(), mcs_map.mean()
+            # return ssim_map.mean(), mcs_map.mean()
+            return ssim_map.mean()
 
     def ms_ssim(self, img1, img2, levels=5):
         # 创建了一个一维的张量。
@@ -82,4 +83,4 @@ class MS_SSIM(torch.nn.Module):
 
     def forward(self, img1, img2):
 
-        return self.ms_ssim(img1, img2)
+        return self._ssim(img1, img2)

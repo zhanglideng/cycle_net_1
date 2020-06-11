@@ -298,4 +298,4 @@ class cycle(nn.Module):
         haze_reconstruct = J * t + A * (1 - t)
         J_reconstruct = (hazy_image - A * (1 - t1)) / t1
 
-        return J, J_reconstruct, haze_reconstruct
+        return J, J_reconstruct, t, haze_reconstruct

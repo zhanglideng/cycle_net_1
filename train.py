@@ -16,13 +16,13 @@ import numpy as np
 from utils.loss import *
 from utils.print_time import *
 from utils.save_log_to_excel import *
-from dataloader import AtJDataSet
+from dataloader import Cycle_DataSet
 from cycle_model import *
 import time
 import xlwt
 from utils.ms_ssim import *
 
-LR = 0.0004  # 学习率
+LR = 0.0002  # 学习率
 EPOCH = 200  # 轮次
 BATCH_SIZE = 1  # 批大小
 excel_train_line = 1  # train_excel写入的行的下标
@@ -32,13 +32,16 @@ accumulation_steps = 8  # 梯度积累的次数，类似于batch-size=64
 # itr_to_lr = 10000 // BATCH_SIZE  # 训练10000次后损失下降50%
 itr_to_excel = 128 // BATCH_SIZE  # 训练64次后保存相关数据到excel
 
-weight = [1, 1, 1, 1, 1, 1, 1, 1, 1]
+weight = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 loss_num = len(weight)  # 包括参加训练和不参加训练的loss
 
 data_path = '/input/data/'
-train_haze_path = data_path + 'nyu/train/'  # 去雾训练集的路径
-val_haze_path = data_path + 'nyu/val/'  # 去雾验证集的路径
-gt_path = data_path + 'nyu/gth/'
+train_hazy_path = data_path + 'nyu/train_hazy/'
+val_hazy_path = data_path + 'nyu/val_hazy/'
+train_gth_path = data_path + 'nyu/train_gth/'
+val_gth_path = data_path + 'nyu/val_gth/'
+train_t_gth_path = data_path + 'nyu/train_t_gth/'
+val_t_gth_path = data_path + 'nyu/val_t_gth/'
 
 save_path = './cycle_result_' + time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime()) + '/'
 save_model_name = save_path + 'cycle_model.pt'  # 保存模型的路径
@@ -48,10 +51,10 @@ mid_save_ed_path = './mid_model/cycle_model.pt'  # 保存的中间模型，用�
 # 初始化excel
 f, sheet_train, sheet_val = init_excel(kind='train')
 
-if os.path.exists('/input/pre_model/AtJ_model/cycle_model.pt'):
-    net = torch.load('/input/pre_model/AtJ_model/cycle_model.pt')
-else:
-    net = cycle().cuda()
+# if os.path.exists('/input/pre_model/AtJ_model/cycle_model.pt'):
+#    net = torch.load('/input/pre_model/AtJ_model/cycle_model.pt')
+# else:
+net = cycle().cuda()
 
 if not os.path.exists(save_path):
     os.makedirs(save_path)
@@ -59,13 +62,13 @@ if not os.path.exists(save_path):
 # 数据转换模式
 transform = transforms.Compose([transforms.ToTensor()])
 # 读取训练集数据
-train_path_list = [train_haze_path, gt_path]
-train_data = AtJDataSet(transform, train_path_list)
+train_path_list = [train_hazy_path, train_gth_path, train_t_gth_path]
+train_data = Cycle_DataSet(transform, train_path_list)
 train_data_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=8)
 
 # 读取验证集数据
-val_path_list = [val_haze_path, gt_path]
-val_data = AtJDataSet(transform, val_path_list)
+val_path_list = [val_hazy_path, val_gth_path, val_t_gth_path]
+val_data = Cycle_DataSet(transform, val_path_list)
 val_data_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=8)
 
 # 定义优化器
@@ -85,14 +88,15 @@ for epoch in range(EPOCH):
     loss = 0
     loss_excel = [0] * loss_num
     net.train()
-    for haze_image, gt_image in train_data_loader:
+    for haze_image, gt_image, t_gth in train_data_loader:
         index += 1
         itr += 1
         haze_image = haze_image.cuda()
         gt_image = gt_image.cuda()
-        J, J_reconstruct, haze_reconstruct = net(haze_image, haze_image)
+        t_gth = t_gth.cuda()
+        J, J_reconstruct, t, haze_reconstruct = net(haze_image, haze_image)
         # J, A, t = net(haze_image)
-        loss_image = [J, gt_image, J_reconstruct, haze_reconstruct, haze_image]
+        loss_image = [J, gt_image, J_reconstruct, t, t_gth, haze_reconstruct, haze_image]
         loss, temp_loss = loss_function(loss_image, weight)
         train_loss += loss.item()
         loss_excel = [loss_excel[i] + temp_loss[i] for i in range(len(loss_excel))]
@@ -106,9 +110,8 @@ for epoch in range(EPOCH):
         if np.mod(index, itr_to_excel) == 0:
             loss_excel = [loss_excel[i] / itr_to_excel for i in range(len(loss_excel))]
             print('epoch %d, %03d/%d' % (epoch + 1, index, len(train_data_loader)))
-            print('J_L2=%.5f\n' 'J_SSIM=%.5f\n' 'J_VGG=%.5f\n'
-                  'J_re_L2=%.5f\n' 'J_re_SSIM=%.5f\n' 'J_re_VGG=%.5f\n'
-                  % (loss_excel[0], loss_excel[1], loss_excel[2], loss_excel[3], loss_excel[4], loss_excel[5]))
+            print('t_L2=%.5f\n' 't_SSIM=%.5f\n' 'J_L2=%.5f\n' 'J_SSIM=%.5f\n' 'J_VGG=%.5f\n' 'J_re_L2=%.5f\n' 'J_re_SSIM=%.5f\n' 'J_re_VGG=%.5f\n'
+                  % (loss_excel[0], loss_excel[1], loss_excel[2], loss_excel[3], loss_excel[4], loss_excel[5], loss_excel[6], loss_excel[7]))
             print_time(start_time, index, EPOCH, len(train_data_loader), epoch)
             excel_train_line = write_excel_train(sheet=sheet_train, line=excel_train_line, epoch=epoch,
                                                  itr=itr, loss=loss_excel, weight=weight)
@@ -121,20 +124,20 @@ for epoch in range(EPOCH):
     val_loss = 0
     with torch.no_grad():
         net.eval()
-        for haze_image, gt_image in val_data_loader:
+        for haze_image, gt_image, t_gth in val_data_loader:
             haze_image = haze_image.cuda()
             gt_image = gt_image.cuda()
-            J, J_reconstruct, haze_reconstruct = net(haze_image, haze_image)
-            loss_image = [J, gt_image, J_reconstruct, haze_reconstruct, haze_image]
+            t_gth = t_gth.cuda()
+            J, J_reconstruct, t, haze_reconstruct = net(haze_image, haze_image)
+            loss_image = [J, gt_image, J_reconstruct, t, t_gth, haze_reconstruct, haze_image]
             loss, temp_loss = loss_function(loss_image, weight)
             loss_excel = [loss_excel[i] + temp_loss[i] for i in range(len(loss_excel))]
     train_loss = train_loss / len(train_data_loader)
     loss_excel = [loss_excel[i] / len(val_data_loader) for i in range(len(loss_excel))]
     for i in range(len(loss_excel)):
         val_loss = val_loss + loss_excel[i] * weight[i]
-    print('J_L2=%.5f\n' 'J_SSIM=%.5f\n' 'J_VGG=%.5f\n'
-          'J_re_L2=%.5f\n' 'J_re_SSIM=%.5f\n' 'J_re_VGG=%.5f\n'
-          % (loss_excel[3], loss_excel[4], loss_excel[5], loss_excel[6], loss_excel[7], loss_excel[8]))
+    print('t_L2=%.5f\n' 't_SSIM=%.5f\n' 'J_L2=%.5f\n' 'J_SSIM=%.5f\n' 'J_VGG=%.5f\n' 'J_re_L2=%.5f\n' 'J_re_SSIM=%.5f\n' 'J_re_VGG=%.5f\n'
+          % (loss_excel[0], loss_excel[1], loss_excel[2], loss_excel[3], loss_excel[4], loss_excel[5], loss_excel[6], loss_excel[7]))
     excel_val_line = write_excel_val(sheet=sheet_val, line=excel_val_line, epoch=epoch,
                                      loss=[loss_excel, val_loss, train_loss])
     f.save(excel_save)
