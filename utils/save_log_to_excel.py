@@ -57,12 +57,14 @@ def init_excel(kind):
         sheet2 = workbook.add_sheet('val', cell_overwrite_ok=True)
         # 通过excel保存训练结果（训练集验证集loss，学习率，训练时间，总训练时间）
         row0 = ["epoch", "itr",
+                "t_l2", "t_ssim",
                 "J_l2", "J_ssim", "J_vgg",
                 "J_re_l2", "J_re_ssim", "J_re_vgg",
                 "I_re_l2", "I_re_ssim", "I_re_vgg",
                 "loss"]
         # row0 = ["epoch", "itr", "l2", "ssim", "loss"]
         row1 = ["epoch",
+                "t_l2", "t_ssim",
                 "J_l2", "J_ssim", "J_vgg",
                 "J_re_l2", "J_re_ssim", "J_re_vgg",
                 "I_re_l2", "I_re_ssim", "I_re_vgg",
@@ -83,7 +85,10 @@ def init_excel(kind):
                 "J2_J3_l2", "J2_J3_ssim", "J2_J3_vgg",
                 "J1_l2", "J1_ssim", "J1_vgg",
                 "J2_l2", "J2_ssim", "J2_vgg",
-                "J3_l2", "J3_ssim", "J3_vgg"]
+                "J3_l2", "J3_ssim", "J3_vgg"
+                "t1_l2", "t1_ssim",
+                "t2_l2", "t2_ssim",
+                "t3_l2", "t3_ssim"]
         for i in range(0, len(row0)):
             print('写入test_excel')
             sheet1.write(0, i, row0[i], set_style('Times New Roman', 220, True))

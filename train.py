@@ -22,7 +22,7 @@ import time
 import xlwt
 from utils.ms_ssim import *
 
-LR = 0.0002  # 学习率
+LR = 0.0008  # 学习率
 EPOCH = 200  # 轮次
 BATCH_SIZE = 1  # 批大小
 excel_train_line = 1  # train_excel写入的行的下标
@@ -73,7 +73,7 @@ val_data_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True, num_
 
 # 定义优化器
 optimizer = torch.optim.Adam(net.parameters(), lr=LR, weight_decay=1e-5)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.7)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=40, gamma=0.7)
 
 min_loss = 999999999
 min_epoch = 0

@@ -76,7 +76,7 @@ def loss_function(image, weight):
 
 
 def loss_test(image):
-    J1, J2, J3, gt_image = image
+    J1, J2, J3, gt_image, t1, t2, t3, t_gth = image
     loss_train = [l2_loss(J1, J2),
                   1 - ssim_loss(J1, J2),
                   vgg_loss(J1, J2),
@@ -91,7 +91,13 @@ def loss_test(image):
                   vgg_loss(J2, gt_image),
                   l2_loss(J3, gt_image),
                   1 - ssim_loss(J3, gt_image),
-                  vgg_loss(J3, gt_image)]
+                  vgg_loss(J3, gt_image),
+                  l2_loss(t1, t_gth),
+                  1 - ssim_loss_1(t1, t_gth),
+                  l2_loss(t2, t_gth),
+                  1 - ssim_loss_1(t2, t_gth),
+                  l2_loss(t3, t_gth),
+                  1 - ssim_loss_1(t3, t_gth)]
     for i in range(len(loss_train)):
         loss_train[i] = loss_train[i].item()
     return loss_train
