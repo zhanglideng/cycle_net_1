@@ -55,21 +55,18 @@ def color_loss(input_image, output_image):
 
 
 def loss_function(image, weight):
-    J, gt_image, J_reconstruct, t, t_gth, haze_reconstruct, haze_image = image
-    loss_train = [l2_loss(t, t_gth),
-                  1 - ssim_loss_1(t, t_gth),
-                  l2_loss(J, gt_image),
-                  1 - ssim_loss(J, gt_image),
-                  vgg_loss(J, gt_image),
-                  l2_loss(J_reconstruct, gt_image),
-                  1 - ssim_loss(J_reconstruct, gt_image),
-                  vgg_loss(J_reconstruct, gt_image),
-                  l2_loss(haze_reconstruct, haze_image),
-                  1 - ssim_loss(haze_reconstruct, haze_image),
-                  vgg_loss(haze_reconstruct, haze_image)]
+    J1, J2, J3, gt_image = image
+    loss_train = [l2_loss(J1, gt_image),
+                  1 - ssim_loss(J1, gt_image),
+                  vgg_loss(J1, gt_image),
+                  l2_loss(J2, gt_image),
+                  1 - ssim_loss(J2, gt_image),
+                  vgg_loss(J2, gt_image),
+                  l2_loss(J3, gt_image),
+                  1 - ssim_loss(J3, gt_image),
+                  vgg_loss(J3, gt_image)]
     loss_sum = 0
     for i in range(len(loss_train)):
-        # print(loss_train[i])
         loss_sum = loss_sum + loss_train[i] * weight[i]
         loss_train[i] = loss_train[i].item()
     return loss_sum, loss_train
