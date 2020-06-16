@@ -83,7 +83,6 @@ for haze_name, haze_image, gt_image in test_data_loader:
 
         excel_test_line = write_excel_test(sheet=sheet_test, line=excel_test_line, name=haze_name[0], loss=loss)
         f.save(excel_save)
-
         im_output_for_save = get_image_for_save(J1)
         filename = haze_name[0] + '_1.bmp'
         cv2.imwrite(os.path.join(save_path, filename), im_output_for_save)

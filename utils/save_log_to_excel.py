@@ -36,7 +36,7 @@ def write_excel_val(sheet, line, epoch, loss):
 def write_excel_test(sheet, line, name, loss):
     # 0_a=0.86_b=1.01
     num = int(name[:4])
-    if len(name)==4:
+    if len(name) == 4:
         air_light = 0.0
         beta = 0.0
     else:
@@ -60,12 +60,14 @@ def init_excel(kind):
                 "J1_l2", "J1_ssim", "J1_vgg",
                 "J2_l2", "J2_ssim", "J2_vgg",
                 "J3_l2", "J3_ssim", "J3_vgg",
+                "J4_l2", "J4_ssim", "J4_vgg",
                 "loss"]
         # row0 = ["epoch", "itr", "l2", "ssim", "loss"]
         row1 = ["epoch",
                 "J1_l2", "J1_ssim", "J1_vgg",
                 "J2_l2", "J2_ssim", "J2_vgg",
                 "J3_l2", "J3_ssim", "J3_vgg",
+                "J4_l2", "J4_ssim", "J4_vgg",
                 "val_loss", "train_loss"]
         # row1 = ["epoch", "l2", "ssim", "val_loss", "train_loss"]
         for i in range(0, len(row0)):
@@ -79,11 +81,12 @@ def init_excel(kind):
         sheet1 = workbook.add_sheet('test', cell_overwrite_ok=True)
         # 通过excel保存训练结果（训练集验证集loss，学习率，训练时间，总训练时间）
         row0 = ["num", "A", "beta",
-                "J1_l2", "J1_ssim", "J1_vgg",
-                "J2_l2", "J2_ssim", "J2_vgg",
-                "J3_l2", "J3_ssim", "J3_vgg",
-                "J4_l2", "J4_ssim", "J4_vgg",
-                "J5_l2", "J5_ssim", "J5_vgg"]
+                "J1_l2", "J2_l2", "J3_l2", "J4_l2", "J5_l2",
+                "J1_ssim", "J2_ssim", "J3_ssim", "J4_ssim", "J5_ssim",
+                "J1_vgg", "J2_vgg", "J3_vgg", "J4_vgg", "J5_vgg",
+                "J1-J2_l2", "J2-J3_l2", "J3-J4_l2", "J4-J5_l2",
+                "J1-J2_ssim", "J2-J3_ssim", "J3-J4_ssim", "J4-J5_ssim",
+                "J1-J2_vgg", "J2-J3_vgg", "J3-J4_vgg", "J4-J5_vgg"]
         for i in range(0, len(row0)):
             print('写入test_excel')
             sheet1.write(0, i, row0[i], set_style('Times New Roman', 220, True))

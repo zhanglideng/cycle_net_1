@@ -22,7 +22,7 @@ import time
 import xlwt
 from utils.ms_ssim import *
 
-LR = 0.0008  # 学习率
+LR = 0.002  # 学习率
 EPOCH = 200  # 轮次
 BATCH_SIZE = 1  # 批大小
 excel_train_line = 1  # train_excel写入的行的下标
@@ -32,7 +32,7 @@ accumulation_steps = 8  # 梯度积累的次数，类似于batch-size=64
 # itr_to_lr = 10000 // BATCH_SIZE  # 训练10000次后损失下降50%
 itr_to_excel = 128 // BATCH_SIZE  # 训练64次后保存相关数据到excel
 
-weight = [1, 1, 1, 1, 1, 1, 1, 1, 1]
+weight = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 loss_num = len(weight)  # 包括参加训练和不参加训练的loss
 
 data_path = '/input/data/'
@@ -96,7 +96,8 @@ for epoch in range(EPOCH):
         J1 = net(haze_image, haze_image)
         J2 = net(J1, haze_image)
         J3 = net(J2, haze_image)
-        loss_image = [J1, J2, J3, gt_image]
+        J4 = net(J3, haze_image)
+        loss_image = [J1, J2, J3, J4, gt_image]
         loss, temp_loss = loss_function(loss_image, weight)
         train_loss += loss.item()
         loss_excel = [loss_excel[i] + temp_loss[i] for i in range(len(loss_excel))]
