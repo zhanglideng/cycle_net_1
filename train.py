@@ -62,12 +62,12 @@ if not os.path.exists(save_path):
 # 数据转换模式
 transform = transforms.Compose([transforms.ToTensor()])
 # 读取训练集数据
-train_path_list = [train_hazy_path, train_gth_path, train_t_gth_path]
+train_path_list = [train_hazy_path, train_gth_path]
 train_data = Cycle_DataSet(transform, train_path_list)
 train_data_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=8)
 
 # 读取验证集数据
-val_path_list = [val_hazy_path, val_gth_path, val_t_gth_path]
+val_path_list = [val_hazy_path, val_gth_path]
 val_data = Cycle_DataSet(transform, val_path_list)
 val_data_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=8)
 
