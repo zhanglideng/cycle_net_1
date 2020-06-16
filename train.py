@@ -50,7 +50,8 @@ mid_save_ed_path = './mid_model/cycle_model.pt'  # 保存的中间模型，用�
 
 # 初始化excel
 f, sheet_train, sheet_val = init_excel(kind='train')
-
+if os.path.exists('./mid_model'):
+    os.makedirs('./mid_model')
 # if os.path.exists('/input/pre_model/AtJ_model/cycle_model.pt'):
 #    net = torch.load('/input/pre_model/AtJ_model/cycle_model.pt')
 # else:
