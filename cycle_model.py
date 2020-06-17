@@ -8,7 +8,7 @@ from torch.autograd import Variable
 
 
 class BottleneckDecoderBlock(nn.Module):
-    def __init__(self, in_planes, out_planes, dropRate=0.0):
+    def __init__(self, in_planes, out_planes, drop_rate=0.1):
         super(BottleneckDecoderBlock, self).__init__()
         inter_planes = out_planes * 4
         self.bn1 = nn.BatchNorm2d(in_planes)
@@ -39,7 +39,7 @@ class BottleneckDecoderBlock(nn.Module):
                                padding=0, bias=False)
         self.conv7 = nn.Conv2d(inter_planes, out_planes, kernel_size=3, stride=1,
                                padding=1, bias=False)
-        self.droprate = dropRate
+        self.drop_rate = drop_rate
 
     def forward(self, x):
         out1 = self.conv1(self.relu1(self.bn1(x)))
@@ -54,16 +54,15 @@ class BottleneckDecoderBlock(nn.Module):
         out5 = torch.cat([out4, out5], 1)
         out6 = self.conv6(self.relu6(self.bn6(out5)))
         out = self.conv7(self.relu7(self.bn7(out6)))
-        if self.droprate > 0:
-            out = F.dropout(out, p=self.droprate, inplace=False, training=self.training)
-        # out = self.conv2(self.relu(self.bn2(out)))
-        if self.droprate > 0:
-            out = F.dropout(out, p=self.droprate, inplace=False, training=self.training)
+        if self.drop_rate > 0:
+            out = F.dropout(out, p=self.drop_rate, inplace=False, training=self.training)
+        if self.drop_rate > 0:
+            out = F.dropout(out, p=self.drop_rate, inplace=False, training=self.training)
         return torch.cat([x, out], 1)
 
 
 class BottleneckBlock(nn.Module):
-    def __init__(self, in_planes, out_planes, dropRate=0.0):
+    def __init__(self, in_planes, out_planes, drop_rate=0.1):
         super(BottleneckBlock, self).__init__()
         inter_planes = out_planes * 4
         self.bn1 = nn.BatchNorm2d(in_planes)
@@ -73,52 +72,52 @@ class BottleneckBlock(nn.Module):
         self.bn2 = nn.BatchNorm2d(inter_planes)
         self.conv2 = nn.Conv2d(inter_planes, out_planes, kernel_size=3, stride=1,
                                padding=1, bias=False)
-        self.droprate = dropRate
+        self.drop_rate = drop_rate
 
     def forward(self, x):
         out = self.conv1(self.relu(self.bn1(x)))
-        if self.droprate > 0:
-            out = F.dropout(out, p=self.droprate, inplace=False, training=self.training)
+        if self.drop_rate > 0:
+            out = F.dropout(out, p=self.drop_rate, inplace=False, training=self.training)
         out = self.conv2(self.relu(self.bn2(out)))
-        if self.droprate > 0:
-            out = F.dropout(out, p=self.droprate, inplace=False, training=self.training)
+        if self.drop_rate > 0:
+            out = F.dropout(out, p=self.drop_rate, inplace=False, training=self.training)
         return torch.cat([x, out], 1)
 
 
 class ResidualBlock(nn.Module):
-    def __init__(self, in_planes, dropRate=0.0):
+    def __init__(self, in_planes, drop_rate=0.1):
         super(ResidualBlock, self).__init__()
         self.conv1 = nn.Conv2d(in_planes, in_planes, kernel_size=3, stride=1,
                                padding=1, bias=False)
         self.relu = nn.ReLU(inplace=True)
         self.conv2 = nn.Conv2d(in_planes, in_planes, kernel_size=3, stride=1,
                                padding=1, bias=False)
-        self.droprate = dropRate
+        self.drop_rate = drop_rate
 
     def forward(self, x):
         x1 = self.relu(self.conv1(x))
         x2 = self.conv2(x1)
         out = x + x2
-        if self.droprate > 0:
-            out = F.dropout(out, p=self.droprate, inplace=False, training=self.training)
-        if self.droprate > 0:
-            out = F.dropout(out, p=self.droprate, inplace=False, training=self.training)
+        if self.drop_rate > 0:
+            out = F.dropout(out, p=self.drop_rate, inplace=False, training=self.training)
+        if self.drop_rate > 0:
+            out = F.dropout(out, p=self.drop_rate, inplace=False, training=self.training)
         return out
 
 
 class TransitionBlock(nn.Module):
-    def __init__(self, in_planes, out_planes, dropRate=0.0):
+    def __init__(self, in_planes, out_planes, drop_rate=0.1):
         super(TransitionBlock, self).__init__()
         self.bn1 = nn.BatchNorm2d(in_planes)
         self.relu = nn.ReLU(inplace=True)
         self.conv1 = nn.ConvTranspose2d(in_planes, out_planes, kernel_size=1, stride=1,
                                         padding=0, bias=False)
-        self.droprate = dropRate
+        self.drop_rate = drop_rate
 
     def forward(self, x):
         out = self.conv1(self.relu(self.bn1(x)))
-        if self.droprate > 0:
-            out = F.dropout(out, p=self.droprate, inplace=False, training=self.training)
+        if self.drop_rate > 0:
+            out = F.dropout(out, p=self.drop_rate, inplace=False, training=self.training)
         return F.upsample_nearest(out, scale_factor=2)
 
 
