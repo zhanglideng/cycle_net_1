@@ -33,6 +33,23 @@ def write_excel_val(sheet, line, epoch, loss):
     return line + 1
 
 
+def write_excel_every_val(sheet, line, epoch, name, loss):
+    sheet.write(line, 0, epoch + 1)
+    num = int(name[:4])
+    if len(name) == 4:
+        air_light = 0.0
+        beta = 0.0
+    else:
+        air_light = float(name[-11:-7])
+        beta = float(name[-4:])
+    sheet.write(line, 1, num)
+    sheet.write(line, 2, air_light)
+    sheet.write(line, 3, beta)
+    for i in range(len(loss)):
+        sheet.write(line, i + 4, round(loss[i], 6))
+    return line + 1
+
+
 def write_excel_test(sheet, line, name, loss):
     # 0_a=0.86_b=1.01
     num = int(name[:4])
@@ -55,6 +72,7 @@ def init_excel(kind):
     if kind == 'train':
         sheet1 = workbook.add_sheet('train', cell_overwrite_ok=True)
         sheet2 = workbook.add_sheet('val', cell_overwrite_ok=True)
+        sheet3 = workbook.add_sheet('val_every_image', cell_overwrite_ok=True)
         # 通过excel保存训练结果（训练集验证集loss，学习率，训练时间，总训练时间）
         row0 = ["epoch", "itr",
                 "J1_l2", "J1_ssim", "J1_vgg",
@@ -67,13 +85,21 @@ def init_excel(kind):
                 "J2_l2", "J2_ssim", "J2_vgg",
                 "J3_l2", "J3_ssim", "J3_vgg",
                 "val_loss", "train_loss"]
+
+        row2 = ["epoch", "num", "A", "beta",
+                "J1_l2", "J1_ssim", "J1_vgg",
+                "J2_l2", "J2_ssim", "J2_vgg",
+                "J3_l2", "J3_ssim", "J3_vgg"]
         # row1 = ["epoch", "l2", "ssim", "val_loss", "train_loss"]
+        print('写入train_excel')
         for i in range(0, len(row0)):
-            print('写入train_excel')
             sheet1.write(0, i, row0[i], set_style('Times New Roman', 220, True))
+        print('写入val_excel')
         for i in range(0, len(row1)):
-            print('写入val_excel')
             sheet2.write(0, i, row1[i], set_style('Times New Roman', 220, True))
+        print('写入val_excel_every_image')
+        for i in range(0, len(row2)):
+            sheet3.write(0, i, row2[i], set_style('Times New Roman', 220, True))
         return workbook, sheet1, sheet2
     elif kind == 'test':
         sheet1 = workbook.add_sheet('test', cell_overwrite_ok=True)
