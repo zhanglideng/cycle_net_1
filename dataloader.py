@@ -1,4 +1,5 @@
 from torch.utils.data import Dataset, DataLoader
+import torchvision.transforms.functional as f
 from torchvision import transforms
 import numpy as np
 import pickle
@@ -10,6 +11,20 @@ import torch
 
 # 一次性读入所有数据
 # nyu/test/1318_a=0.55_b=1.21.png
+
+# 实现旋转，反转。一共8种形态。
+def data_aug(img1, img2):
+    a = random.random()
+    b = random.random()
+    if a >= 0.5:
+        img1 = f.hflip(img1)
+        img2 = f.hflip(img2)
+    angle = transforms.RandomRotation.get_params(int(math.floor(b * 4) * 90))
+    img1 = img1.rotate(angle)
+    img2 = img2.rotate(angle)
+    return img1, img2
+
+
 class Cycle_DataSet(Dataset):
     def __init__(self, transform1, path=None, flag='train'):
         # print(path)
@@ -21,7 +36,7 @@ class Cycle_DataSet(Dataset):
         self.haze_data_list.sort(key=lambda x: int(x[:4]))
         self.gt_data_list = os.listdir(self.gt_path)
         self.gt_data_list.sort(key=lambda x: int(x[:4]))
-        #self.t_data_list = os.listdir(self.t_path)
+        # self.t_data_list = os.listdir(self.t_path)
         self.haze_image_dict = {}
         self.gth_image_dict = {}
         # self.t_dict = {}
@@ -37,9 +52,6 @@ class Cycle_DataSet(Dataset):
             name = self.gt_data_list[i][:4]
             self.haze_image_dict[name] = cv2.imread(self.gt_path + name + '.png')
             self.gth_image_dict[name] = cv2.imread(self.gt_path + name + '.png')
-            # t_gth = np.load(self.t_path + name + '.npy')
-            # self.t_dict[name] = t_gth
-        # self.haze_data_list = self.haze_data_list + self.gt_data_list
         self.length = len(self.haze_data_list)
 
     def __len__(self):
@@ -49,26 +61,17 @@ class Cycle_DataSet(Dataset):
         name = self.haze_data_list[idx][:-4]
         haze_image = self.haze_image_dict[name]
         gt_image = self.gth_image_dict[name[:4]]
+        # 数据增强
         '''
-        t_gth = self.t_dict[name[:4]]
-        if len(name) > 4:
-            beta = float(name[-4:])
-        else:
-            beta = 0.01
-        t_gth = np.exp(-1 * beta * t_gth)
-        t_gth = np.expand_dims(t_gth, axis=2)
-        t_gth = t_gth.astype(np.float32)
+        print(haze_image.shape)
+        print(gt_image.shape)
+        haze_image, gt_image = data_aug(haze_image, gt_image)
+        print(haze_image.shape)
+        print(gt_image.shape)
         '''
         if self.transform1:
             haze_image = self.transform1(haze_image)
             gt_image = self.transform1(gt_image)
-            # t_gth = self.transform1(t_gth)
-        '''
-        if self.flag == 'train':
-            return haze_image, gt_image, t_gth
-        elif self.flag == 'test':
-            return name, haze_image, gt_image, t_gth
-        '''
         if self.flag == 'train':
             return haze_image, gt_image
         elif self.flag == 'test':
