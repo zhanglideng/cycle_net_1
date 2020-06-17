@@ -64,10 +64,7 @@ def loss_function(image, weight):
                   vgg_loss(J2, gt_image),
                   l2_loss(J3, gt_image),
                   1 - ssim_loss(J3, gt_image),
-                  vgg_loss(J3, gt_image),
-                  l2_loss(J4, gt_image),
-                  1 - ssim_loss(J4, gt_image),
-                  vgg_loss(J4, gt_image)]
+                  vgg_loss(J3, gt_image)]
     loss_sum = 0
     for i in range(len(loss_train)):
         loss_sum = loss_sum + loss_train[i] * weight[i]

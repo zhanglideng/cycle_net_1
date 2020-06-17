@@ -60,14 +60,12 @@ def init_excel(kind):
                 "J1_l2", "J1_ssim", "J1_vgg",
                 "J2_l2", "J2_ssim", "J2_vgg",
                 "J3_l2", "J3_ssim", "J3_vgg",
-                "J4_l2", "J4_ssim", "J4_vgg",
                 "loss"]
         # row0 = ["epoch", "itr", "l2", "ssim", "loss"]
         row1 = ["epoch",
                 "J1_l2", "J1_ssim", "J1_vgg",
                 "J2_l2", "J2_ssim", "J2_vgg",
                 "J3_l2", "J3_ssim", "J3_vgg",
-                "J4_l2", "J4_ssim", "J4_vgg",
                 "val_loss", "train_loss"]
         # row1 = ["epoch", "l2", "ssim", "val_loss", "train_loss"]
         for i in range(0, len(row0)):
