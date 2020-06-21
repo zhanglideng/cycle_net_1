@@ -27,6 +27,7 @@ EPOCH = 200  # 轮次
 BATCH_SIZE = 1  # 批大小
 excel_train_line = 1  # train_excel写入的行的下标
 excel_val_line = 1  # val_excel写入的行的下标
+excel_val_every_image_line = 1
 alpha = 1  # 损失函数的权重
 accumulation_steps = 8  # 梯度积累的次数，类似于batch-size=64
 # itr_to_lr = 10000 // BATCH_SIZE  # 训练10000次后损失下降50%
@@ -141,8 +142,9 @@ for epoch in range(EPOCH):
             J3 = net(J2, haze_image)
             loss_image = [J1, J2, J3, gt_image]
             loss, temp_loss = loss_function(loss_image, weight)
-            excel_train_line = write_excel_every_val(sheet=sheet_val_every_image, line=excel_train_line, epoch=epoch,
-                                                     name=name[0], loss=temp_loss)
+            excel_val_every_image_line = write_excel_every_val(sheet=sheet_val_every_image,
+                                                               line=excel_val_every_image_line, epoch=epoch,
+                                                               name=name[0], loss=temp_loss)
             f.save(excel_save)
             # loss_image = [J, gt_image, J_reconstruct, t, t_gth, haze_reconstruct, haze_image]
             # loss, temp_loss = loss_function(loss_image, weight)
