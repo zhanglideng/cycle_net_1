@@ -54,9 +54,9 @@ f, sheet_train, sheet_val, sheet_val_every_image = init_excel(kind='train')
 if not os.path.exists('./mid_model'):
     os.makedirs('./mid_model')
 
-if os.path.exists(data_path + 'pre_model/J_model/cycle_model.pt'):
+if os.path.exists(data_path + '/pre_model/J_model/cycle_model.pt'):
     print('加载预训练模型')
-    net = torch.load(data_path + 'pre_model/J_model/cycle_model.pt').cuda()
+    net = torch.load(data_path + '/pre_model/J_model/cycle_model.pt').cuda()
 else:
     print('创建新模型')
     net = cycle().cuda()
