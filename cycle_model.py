@@ -6,9 +6,11 @@ from collections import OrderedDict
 import torchvision.models as models
 from torch.autograd import Variable
 
+DROP_RATE = 0.5
+
 
 class BottleneckDecoderBlock(nn.Module):
-    def __init__(self, in_planes, out_planes, drop_rate=0.1):
+    def __init__(self, in_planes, out_planes, drop_rate=DROP_RATE):
         super(BottleneckDecoderBlock, self).__init__()
         inter_planes = out_planes * 4
         self.bn1 = nn.BatchNorm2d(in_planes)
@@ -62,7 +64,7 @@ class BottleneckDecoderBlock(nn.Module):
 
 
 class BottleneckBlock(nn.Module):
-    def __init__(self, in_planes, out_planes, drop_rate=0.1):
+    def __init__(self, in_planes, out_planes, drop_rate=DROP_RATE):
         super(BottleneckBlock, self).__init__()
         inter_planes = out_planes * 4
         self.bn1 = nn.BatchNorm2d(in_planes)
@@ -85,7 +87,7 @@ class BottleneckBlock(nn.Module):
 
 
 class ResidualBlock(nn.Module):
-    def __init__(self, in_planes, drop_rate=0.1):
+    def __init__(self, in_planes, drop_rate=DROP_RATE):
         super(ResidualBlock, self).__init__()
         self.conv1 = nn.Conv2d(in_planes, in_planes, kernel_size=3, stride=1,
                                padding=1, bias=False)
@@ -106,7 +108,7 @@ class ResidualBlock(nn.Module):
 
 
 class TransitionBlock(nn.Module):
-    def __init__(self, in_planes, out_planes, drop_rate=0.1):
+    def __init__(self, in_planes, out_planes, drop_rate=DROP_RATE):
         super(TransitionBlock, self).__init__()
         self.bn1 = nn.BatchNorm2d(in_planes)
         self.relu = nn.ReLU(inplace=True)
