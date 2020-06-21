@@ -13,21 +13,17 @@ import cv2
 import gc
 import time
 
-train_hazy_path = '/input/data/nyu/train_hazy/'
-val_hazy_path = '/input/data/nyu/val_hazy/'
-test_hazy_path = '/input/data/nyu/test_hazy/'
+train_hazy_path = '/input/data/nyu_cycle/train_hazy/'
+val_hazy_path = '/input/data/nyu_cycle/val_hazy/'
+test_hazy_path = '/input/data/nyu_cycle/test_hazy/'
 
-train_gth_path = '/input/data/nyu/train_gth/'
-val_gth_path = '/input/data/nyu/val_gth/'
-test_gth_path = '/input/data/nyu/test_gth/'
-
-train_t_gth_path = '/input/data/nyu/train_t_gth/'
-val_t_gth_path = '/input/data/nyu/val_t_gth/'
-test_t_gth_path = '/input/data/nyu/test_t_gth/'
+train_gth_path = '/input/data/nyu_cycle/train_gth/'
+val_gth_path = '/input/data/nyu_cycle/val_gth/'
+test_gth_path = '/input/data/nyu_cycle/test_gth/'
 
 mat_path = '/input/data/nyu_depth_v2_labeled.mat'
 
-haze_num = 1  # 无雾图生成几张有雾图
+haze_num = 2  # 无雾图生成几张有雾图
 sigma = 1  # 高斯噪声的方差
 trim_size = 16
 '''
@@ -62,8 +58,7 @@ def Guidedfilter(im, p, r, eps):
 if __name__ == '__main__':
     # color_shift = 0  # 合成无偏差的有雾图
     path = [train_hazy_path, val_hazy_path, test_hazy_path,
-            train_gth_path, val_gth_path, test_gth_path,
-            train_t_gth_path, val_t_gth_path, test_t_gth_path]
+            train_gth_path, val_gth_path, test_gth_path]
     for i in path:
         if not os.path.exists(i):
             os.makedirs(i)
@@ -86,15 +81,12 @@ if __name__ == '__main__':
         if i < length * 0.8 - 1:
             hazy_path = train_hazy_path
             gth_path = train_gth_path
-            t_gth_path = train_t_gth_path
         elif i <= length * 0.9 - 1:
             hazy_path = val_hazy_path
             gth_path = val_gth_path
-            t_gth_path = val_t_gth_path
         else:
             hazy_path = test_hazy_path
             gth_path = test_gth_path
-            t_gth_path = test_t_gth_path
         depth = depths[i]
         m = depth.max()
         depth = depth / m
@@ -102,15 +94,13 @@ if __name__ == '__main__':
         print('dealing:' + str(i) + '.png')
         image_gray = image[0] * 0.299 + image[1] * 0.587 + image[2] * 0.114
         depth = Guidedfilter(image_gray, depth, 14, 0.0001)
-        depth_index_path = t_gth_path + '0' * (4 - len(str(i))) + str(i) + '.npy'
-        np.save(depth_index_path, depth)
 
         r = Image.fromarray(images[i][0]).convert('L')
         g = Image.fromarray(images[i][1]).convert('L')
         b = Image.fromarray(images[i][2]).convert('L')
         img = Image.merge("RGB", (r, g, b))
         save_path = gth_path + '0' * (4 - len(str(i))) + str(i) + '.png'
-        img.save(save_path, 'PNG', optimize=True)
+        img.save(save_path, 'png', optimize=True)
 
         for rand in range(haze_num):
             # image_out = np.zeros((3, depth.shape[0], depth.shape[1]))
@@ -120,7 +110,7 @@ if __name__ == '__main__':
             fog_A = round(random.uniform(0.7, 1), 2)
             map_A = np.ones((3, depth.shape[0], depth.shape[1])) * fog_A
 
-            fog_density = round(random.uniform(0.8, 1.0), 2)
+            fog_density = round(random.uniform(0.8, 1.2), 2)
 
             t = np.exp(-1 * fog_density * depth)
             t = np.expand_dims(t, axis=0)

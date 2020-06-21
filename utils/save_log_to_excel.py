@@ -75,17 +75,16 @@ def init_excel(kind):
         sheet3 = workbook.add_sheet('val_every_image', cell_overwrite_ok=True)
         # 通过excel保存训练结果（训练集验证集loss，学习率，训练时间，总训练时间）
         row0 = ["epoch", "itr",
-                "J1_l2", "J1_ssim", "J1_vgg",
-                "J2_l2", "J2_ssim", "J2_vgg",
-                "J3_l2", "J3_ssim", "J3_vgg",
+                "J1_l2", "J2_l2", "J3_l2",
+                "J1_ssim", "J2_ssim", "J3_ssim",
+                "J1_vgg", "J2_vgg", "J3_vgg",
                 "loss"]
         # row0 = ["epoch", "itr", "l2", "ssim", "loss"]
         row1 = ["epoch",
-                "J1_l2", "J1_ssim", "J1_vgg",
-                "J2_l2", "J2_ssim", "J2_vgg",
-                "J3_l2", "J3_ssim", "J3_vgg",
+                "J1_l2", "J2_l2", "J3_l2",
+                "J1_ssim", "J2_ssim", "J3_ssim",
+                "J1_vgg", "J2_vgg", "J3_vgg",
                 "val_loss", "train_loss"]
-
         row2 = ["epoch", "num", "A", "beta",
                 "J1_l2", "J1_ssim", "J1_vgg",
                 "J2_l2", "J2_ssim", "J2_vgg",
@@ -100,7 +99,7 @@ def init_excel(kind):
         print('写入val_excel_every_image')
         for i in range(0, len(row2)):
             sheet3.write(0, i, row2[i], set_style('Times New Roman', 220, True))
-        return workbook, sheet1, sheet2
+        return workbook, sheet1, sheet2, sheet3
     elif kind == 'test':
         sheet1 = workbook.add_sheet('test', cell_overwrite_ok=True)
         # 通过excel保存训练结果（训练集验证集loss，学习率，训练时间，总训练时间）

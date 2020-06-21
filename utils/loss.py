@@ -57,13 +57,13 @@ def color_loss(input_image, output_image):
 def loss_function(image, weight):
     J1, J2, J3, gt_image = image
     loss_train = [l2_loss(J1, gt_image),
-                  1 - ssim_loss(J1, gt_image),
-                  vgg_loss(J1, gt_image),
                   l2_loss(J2, gt_image),
-                  1 - ssim_loss(J2, gt_image),
-                  vgg_loss(J2, gt_image),
                   l2_loss(J3, gt_image),
+                  1 - ssim_loss(J1, gt_image),
+                  1 - ssim_loss(J2, gt_image),
                   1 - ssim_loss(J3, gt_image),
+                  vgg_loss(J1, gt_image),
+                  vgg_loss(J2, gt_image),
                   vgg_loss(J3, gt_image)]
     loss_sum = 0
     for i in range(len(loss_train)):
