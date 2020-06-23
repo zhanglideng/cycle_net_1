@@ -17,7 +17,7 @@ from utils.loss import *
 from utils.print_time import *
 from utils.save_log_to_excel import *
 from dataloader import Cycle_DataSet
-from cycle_model import *
+from new_cycle_model import *
 import time
 import xlwt
 from utils.ms_ssim import *
