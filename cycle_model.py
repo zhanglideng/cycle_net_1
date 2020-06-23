@@ -6,9 +6,10 @@ from collections import OrderedDict
 import torchvision.models as models
 from torch.autograd import Variable
 
-DROP_RATE = 0.5
+DROP_RATE = 0.3
 
 
+# 瓶颈解码层
 class BottleneckDecoderBlock(nn.Module):
     def __init__(self, in_planes, out_planes, drop_rate=DROP_RATE):
         super(BottleneckDecoderBlock, self).__init__()
@@ -63,6 +64,7 @@ class BottleneckDecoderBlock(nn.Module):
         return torch.cat([x, out], 1)
 
 
+# 瓶颈层
 class BottleneckBlock(nn.Module):
     def __init__(self, in_planes, out_planes, drop_rate=DROP_RATE):
         super(BottleneckBlock, self).__init__()
@@ -86,6 +88,7 @@ class BottleneckBlock(nn.Module):
         return torch.cat([x, out], 1)
 
 
+# 残差层
 class ResidualBlock(nn.Module):
     def __init__(self, in_planes, drop_rate=DROP_RATE):
         super(ResidualBlock, self).__init__()
@@ -107,6 +110,7 @@ class ResidualBlock(nn.Module):
         return out
 
 
+# 过渡层
 class TransitionBlock(nn.Module):
     def __init__(self, in_planes, out_planes, drop_rate=DROP_RATE):
         super(TransitionBlock, self).__init__()
