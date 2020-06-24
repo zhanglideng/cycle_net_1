@@ -62,13 +62,12 @@ class Cycle_DataSet(Dataset):
         haze_image = self.haze_image_dict[name]
         gt_image = self.gth_image_dict[name[:4]]
         # 数据增强
-        '''
+
         print(haze_image.shape)
         print(gt_image.shape)
         haze_image, gt_image = data_aug(haze_image, gt_image)
         print(haze_image.shape)
         print(gt_image.shape)
-        '''
         if self.transform1:
             haze_image = self.transform1(haze_image)
             gt_image = self.transform1(gt_image)
