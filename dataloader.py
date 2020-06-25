@@ -9,6 +9,7 @@ import scipy.io as sio
 import torch
 import random
 import math
+from PIL import Image
 
 
 # 一次性读入所有数据
@@ -16,22 +17,26 @@ import math
 
 # 实现旋转，反转。一共8种形态。
 def data_aug(img1, img2):
-    (h, w) = img1.shape[:2]
-    center = (w // 2, h // 2)
     a = random.random()
-    b = random.random()
+    b = math.floor(random.random() * 4)
     if a >= 0.5:
-        img1 = transforms.RandomHorizontalFlip(img1)
-        img2 = transforms.RandomHorizontalFlip(img2)
-    M = cv2.getRotationMatrix2D(center, math.floor(b * 4) * 90, 1.0) #12
-    img1 = cv2.warpAffine(img1, M, (w, h))
-    img2 = cv2.warpAffine(img2, M, (w, h))
+        img1 = img1.transpose(Image.FLIP_LEFT_RIGHT)
+        img2 = img2.transpose(Image.FLIP_LEFT_RIGHT)
+
+    if b == 1:
+        img1 = img1.transpose(Image.ROTATE_90)
+        img2 = img2.transpose(Image.ROTATE_90)
+    elif b == 2:
+        img1 = img1.transpose(Image.ROTATE_180)
+        img2 = img2.transpose(Image.ROTATE_180)
+    elif b == 3:
+        img1 = img1.transpose(Image.ROTATE_270)
+        img2 = img2.transpose(Image.ROTATE_270)
     return img1, img2
 
 
 class Cycle_DataSet(Dataset):
     def __init__(self, transform1, path=None, flag='train'):
-        # print(path)
         self.flag = flag
         self.transform1 = transform1
         self.haze_path, self.gt_path = path
@@ -47,12 +52,12 @@ class Cycle_DataSet(Dataset):
         # 读入数据
         # 为t提供Gth，如果是有雾图像则加载实际β，如果是无雾图像，则加载β为0.01
         # print('starting read image data...')
-        #for i in range(len(self.haze_data_list)):
+        # for i in range(len(self.haze_data_list)):
         #    name = self.haze_data_list[i][:-4]
-            # print(self.haze_path + name + '.png')
+        # print(self.haze_path + name + '.png')
         #    self.haze_image_dict[name] = cv2.imread(self.haze_path + name + '.png')
-        #print('starting read GroundTruth data...')
-        #for i in range(len(self.gt_data_list)):
+        # print('starting read GroundTruth data...')
+        # for i in range(len(self.gt_data_list)):
         #    name = self.gt_data_list[i][:4]
         #    self.haze_image_dict[name] = cv2.imread(self.gt_path + name + '.png')
         #    self.gth_image_dict[name] = cv2.imread(self.gt_path + name + '.png')
@@ -63,16 +68,13 @@ class Cycle_DataSet(Dataset):
 
     def __getitem__(self, idx):
         haze_name = self.haze_data_list[idx][:-4]
-        gth_name = self.gt_data_list[idx][:4]
-        haze_image = cv2.imread(self.haze_path + haze_name + '.png')
-        gt_image = cv2.imread(self.gt_path + gth_name + '.png')
+        gth_name = haze_name[:4]
+        haze_image = Image.open(self.haze_path + haze_name + '.png')
+        gt_image = Image.open(self.gt_path + gth_name + '.png')
         # 数据增强
-
-        print(haze_image)
-        print(gt_image.shape)
         haze_image, gt_image = data_aug(haze_image, gt_image)
-        print(haze_image.shape)
-        print(gt_image.shape)
+        haze_image = np.asarray(haze_image)
+        gt_image = np.asarray(gt_image)
         if self.transform1:
             haze_image = self.transform1(haze_image)
             gt_image = self.transform1(gt_image)

@@ -6,7 +6,7 @@ from collections import OrderedDict
 import torchvision.models as models
 from torch.autograd import Variable
 
-DROP_RATE = 0.3
+DROP_RATE = 0.1
 
 
 class TransitionBlock(nn.Module):
@@ -31,8 +31,8 @@ class DenseLayer(nn.Module):
         inter_planes = out_planes * 2
         self.bn1 = nn.BatchNorm2d(in_planes)
         self.relu = nn.ReLU(inplace=True)
-        self.conv1 = nn.Conv2d(in_planes, 32, kernel_size=3, stride=1, padding=0, bias=False)
-        self.bn2 = nn.BatchNorm2d(inter_planes)
+        self.conv1 = nn.Conv2d(in_planes, 32, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(in_planes + 32)
         self.conv2 = nn.Conv2d(in_planes + 32, out_planes - in_planes, kernel_size=3, stride=1, padding=1, bias=False)
         self.drop_rate = drop_rate
 
@@ -55,19 +55,15 @@ class DenseBlock(nn.Module):
         self.DenseLayer3 = DenseLayer(in_planes + 32 * 2, in_planes + 32 * 3)
         self.DenseLayer4 = DenseLayer(in_planes + 32 * 3, in_planes + 32 * 4)
         self.DenseLayer5 = DenseLayer(in_planes + 32 * 4, in_planes + 32 * 5)
-        self.DenseLayer6 = DenseLayer(in_planes + 32 * 5, in_planes + 32 * 6)
-        self.DenseLayer7 = DenseLayer(in_planes + 32 * 6, in_planes + 32 * 7)
         self.drop_rate = drop_rate
 
     def forward(self, x):
         x1 = self.DenseLayer1(x)
-        x2 = self.DenseLayer1(x1)
-        x3 = self.DenseLayer1(x2)
-        x4 = self.DenseLayer1(x3)
-        x5 = self.DenseLayer1(x4)
-        x6 = self.DenseLayer1(x5)
-        x7 = self.DenseLayer1(x6)
-        return x7
+        x2 = self.DenseLayer2(x1)
+        x3 = self.DenseLayer3(x2)
+        x4 = self.DenseLayer4(x3)
+        x5 = self.DenseLayer5(x4)
+        return x5
 
 
 class Dense_decoder(nn.Module):
@@ -75,16 +71,16 @@ class Dense_decoder(nn.Module):
         super(Dense_decoder, self).__init__()
 
         self.dense_block1 = DenseBlock(128 + 384)
-        self.trans_block1 = TransitionBlock(128 + 384 + 32 * 7, 32 + 128)
+        self.trans_block1 = TransitionBlock(128 + 384 + 32 * 5, 32 + 128)
 
         self.dense_block2 = DenseBlock(256 + 32)
-        self.trans_block2 = TransitionBlock(256 + 32 + 32 * 7, 64)
+        self.trans_block2 = TransitionBlock(256 + 32 + 32 * 5, 64)
 
         self.dense_block3 = DenseBlock(64)
-        self.trans_block3 = TransitionBlock(64 + 32 * 7, 32)
+        self.trans_block3 = TransitionBlock(64 + 32 * 5, 32)
 
         self.dense_block4 = DenseBlock(32)
-        self.trans_block4 = TransitionBlock(32 + 32 * 7, 16)
+        self.trans_block4 = TransitionBlock(32 + 32 * 5, 16)
 
         self.refine1 = nn.Conv2d(22, 20, 3, 1, 1)
         self.tanh = nn.Tanh()
@@ -156,7 +152,7 @@ class Encoder(nn.Module):
         # 这里不继续用DenseNet的原因是DenseNet的深层信息是分类信息，无助于去雾
         ############# Block4-up  8-8  ##############
         self.dense_block4 = DenseBlock(896)  # 896, 256
-        self.trans_block4 = TransitionBlock(896 + 32 * 7, 256)  # 1152, 128
+        self.trans_block4 = TransitionBlock(896 + 32 * 5, 256)  # 1152, 128
 
     def forward(self, x, activation='sig'):
         # 608 X 448
