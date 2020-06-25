@@ -33,14 +33,14 @@ accumulation_steps = 8  # 梯度积累的次数，类似于batch-size=64
 # itr_to_lr = 10000 // BATCH_SIZE  # 训练10000次后损失下降50%
 itr_to_excel = 128 // BATCH_SIZE  # 训练64次后保存相关数据到excel
 
-# weight = [5, 1, 1, 10, 2, 2, 20, 4, 4]
-weight = [5, 1, 1, 20, 4, 4, 80, 16, 16]
-loss_num = len(weight)  # 包括参加训练和不参加训练的loss
-
 if os.path.exists('/input'):
     data_path = '/input'
+    weight = [5, 1, 1, 20, 4, 4, 80, 16, 16]
 else:
     data_path = '/home/ljh/zhanglideng'
+    weight = [5, 1, 1, 10, 2, 2, 20, 4, 4]
+loss_num = len(weight)
+
 train_hazy_path = data_path + '/data/nyu_cycle/train_hazy/'
 val_hazy_path = data_path + '/data/nyu_cycle/val_hazy/'
 train_gth_path = data_path + '/data/nyu_cycle/train_gth/'
@@ -99,7 +99,6 @@ for epoch in range(EPOCH):
         itr += 1
         haze_image = haze_image.cuda()
         gt_image = gt_image.cuda()
-        # t_gth = t_gth.cuda()
         J1 = net(haze_image, haze_image)
         J2 = net(J1, haze_image)
         J3 = net(J2, haze_image)

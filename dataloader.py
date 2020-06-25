@@ -22,7 +22,6 @@ def data_aug(img1, img2):
     if a >= 0.5:
         img1 = img1.transpose(Image.FLIP_LEFT_RIGHT)
         img2 = img2.transpose(Image.FLIP_LEFT_RIGHT)
-
     if b == 1:
         img1 = img1.transpose(Image.ROTATE_90)
         img2 = img2.transpose(Image.ROTATE_90)
@@ -40,27 +39,10 @@ class Cycle_DataSet(Dataset):
         self.flag = flag
         self.transform1 = transform1
         self.haze_path, self.gt_path = path
-
         self.haze_data_list = os.listdir(self.haze_path)
         self.haze_data_list.sort(key=lambda x: int(x[:4]))
         self.gt_data_list = os.listdir(self.gt_path)
         self.gt_data_list.sort(key=lambda x: int(x[:4]))
-        # self.t_data_list = os.listdir(self.t_path)
-        # self.haze_image_dict = {}
-        # self.gth_image_dict = {}
-        # self.t_dict = {}
-        # 读入数据
-        # 为t提供Gth，如果是有雾图像则加载实际β，如果是无雾图像，则加载β为0.01
-        # print('starting read image data...')
-        # for i in range(len(self.haze_data_list)):
-        #    name = self.haze_data_list[i][:-4]
-        # print(self.haze_path + name + '.png')
-        #    self.haze_image_dict[name] = cv2.imread(self.haze_path + name + '.png')
-        # print('starting read GroundTruth data...')
-        # for i in range(len(self.gt_data_list)):
-        #    name = self.gt_data_list[i][:4]
-        #    self.haze_image_dict[name] = cv2.imread(self.gt_path + name + '.png')
-        #    self.gth_image_dict[name] = cv2.imread(self.gt_path + name + '.png')
         self.length = len(self.haze_data_list)
 
     def __len__(self):
