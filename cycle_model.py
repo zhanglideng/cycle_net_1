@@ -14,19 +14,19 @@ class BottleneckDecoderBlock(nn.Module):
     def __init__(self, in_planes, out_planes, drop_rate=DROP_RATE):
         super(BottleneckDecoderBlock, self).__init__()
         inter_planes = out_planes * 4
-        self.bn1 = nn.BatchNorm2d(in_planes)
+        self.bn1 = nn.InstanceNorm2d(in_planes)
         self.relu1 = nn.ReLU(inplace=True)
-        self.bn2 = nn.BatchNorm2d(in_planes + 32)
+        self.bn2 = nn.InstanceNorm2d(in_planes + 32)
         self.relu2 = nn.ReLU(inplace=True)
-        self.bn3 = nn.BatchNorm2d(in_planes + 2 * 32)
+        self.bn3 = nn.InstanceNorm2d(in_planes + 2 * 32)
         self.relu3 = nn.ReLU(inplace=True)
-        self.bn4 = nn.BatchNorm2d(in_planes + 3 * 32)
+        self.bn4 = nn.InstanceNorm2d(in_planes + 3 * 32)
         self.relu4 = nn.ReLU(inplace=True)
-        self.bn5 = nn.BatchNorm2d(in_planes + 4 * 32)
+        self.bn5 = nn.InstanceNorm2d(in_planes + 4 * 32)
         self.relu5 = nn.ReLU(inplace=True)
-        self.bn6 = nn.BatchNorm2d(in_planes + 5 * 32)
+        self.bn6 = nn.InstanceNorm2d(in_planes + 5 * 32)
         self.relu6 = nn.ReLU(inplace=True)
-        self.bn7 = nn.BatchNorm2d(inter_planes)
+        self.bn7 = nn.InstanceNorm2d(inter_planes)
         self.relu7 = nn.ReLU(inplace=True)
         self.conv1 = nn.Conv2d(in_planes, 32, kernel_size=3, stride=1,
                                padding=1, bias=False)
@@ -69,11 +69,11 @@ class BottleneckBlock(nn.Module):
     def __init__(self, in_planes, out_planes, drop_rate=DROP_RATE):
         super(BottleneckBlock, self).__init__()
         inter_planes = out_planes * 4
-        self.bn1 = nn.BatchNorm2d(in_planes)
+        self.bn1 = nn.InstanceNorm2d(in_planes)
         self.relu = nn.ReLU(inplace=True)
         self.conv1 = nn.Conv2d(in_planes, inter_planes, kernel_size=1, stride=1,
                                padding=0, bias=False)
-        self.bn2 = nn.BatchNorm2d(inter_planes)
+        self.bn2 = nn.InstanceNorm2d(inter_planes)
         self.conv2 = nn.Conv2d(inter_planes, out_planes, kernel_size=3, stride=1,
                                padding=1, bias=False)
         self.drop_rate = drop_rate
@@ -114,7 +114,7 @@ class ResidualBlock(nn.Module):
 class TransitionBlock(nn.Module):
     def __init__(self, in_planes, out_planes, drop_rate=DROP_RATE):
         super(TransitionBlock, self).__init__()
-        self.bn1 = nn.BatchNorm2d(in_planes)
+        self.bn1 = nn.InstanceNorm2d(in_planes)
         self.relu = nn.ReLU(inplace=True)
         self.conv1 = nn.ConvTranspose2d(in_planes, out_planes, kernel_size=1, stride=1,
                                         padding=0, bias=False)
