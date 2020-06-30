@@ -4,7 +4,9 @@
       <w>conv</w>
       <w>guidedfilter</w>
       <w>relu</w>
+      <w>scharr</w>
       <w>ssim</w>
+      <w>stddv</w>
     </words>
   </dictionary>
 </component>
