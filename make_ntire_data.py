@@ -13,17 +13,21 @@ def Scharr_demo(image):
     # print(np.mean(gradxy))
     return int(np.mean(gradxy))
 
+if os.path.exists('/input'):
+    ori_data_path = '/input/data/ntire_2018'
+    cut_data_path = '/input/data/cut_ntire_2018'
+else:
+    ori_data_path = '/home/ljh/zhanglideng/data/ntire_2018'
+    cut_data_path = '/home/ljh/zhanglideng/data/cut_ntire_2018'
+ori_hazy_path = [ori_data_path + '/train_hazy/', ori_data_path + '/val_hazy/', ori_data_path + '/test_hazy/']
+ori_gth_path = [ori_data_path + '/train_gth/', ori_data_path + '/val_gth/', ori_data_path + '/test_gth/']
+cut_hazy_path = [cut_data_path + '/train_hazy/', cut_data_path + '/flat_train_hazy/',
+                 cut_data_path + '/val_hazy/', cut_data_path + '/flat_val_hazy/',
+                 cut_data_path + '/test_hazy/', cut_data_path + '/flat_test_hazy/']
 
-data_path = '/input/data/ntire_2018'
-ori_hazy_path = data_path + '/hazy/'
-ori_gth_path = data_path + '/GT/'
-cut_hazy_path = [data_path + '/train_hazy/', data_path + '/flat_train_hazy/',
-                 data_path + '/val_hazy/', data_path + '/flat_val_hazy/',
-                 data_path + '/test_hazy/', data_path + '/flat_test_hazy/']
-
-cut_gth_path = [data_path + '/train_gth/', data_path + '/flat_train_gth/',
-                data_path + '/val_gth/', data_path + '/flat_val_gth/',
-                data_path + '/test_gth/', data_path + '/flat_test_gth/']
+cut_gth_path = [cut_data_path + '/train_gth/', cut_data_path + '/flat_train_gth/',
+                cut_data_path + '/val_gth/', cut_data_path + '/flat_val_gth/',
+                cut_data_path + '/test_gth/', cut_data_path + '/flat_test_gth/']
 size = 256
 '''
 01_indoor_GT.jpg
@@ -42,75 +46,56 @@ for i in range(len(cut_gth_path)):
     if not os.path.exists(cut_gth_path[i]):
         os.makedirs(cut_gth_path[i])
 
-hazy_data_list = os.listdir(ori_hazy_path)
-gth_data_list = os.listdir(ori_gth_path)
-hazy_data_list.sort(key=lambda x: int(x[:2]))
-hazy_data_list.sort(key=lambda x: (x[4]))
-gth_data_list.sort(key=lambda x: int(x[:2]))
-gth_data_list.sort(key=lambda x: (x[4]))
-
-for i in range(len(hazy_data_list)):
-    name = '0' * (2 - len(str(i))) + str(i) + '.jpg'
-    shutil.move(ori_hazy_path + hazy_data_list[i], ori_hazy_path + name)
-
-for i in range(len(gth_data_list)):
-    name = '0' * (2 - len(str(i))) + str(i) + '.jpg'
-    shutil.move(ori_gth_path + gth_data_list[i], ori_gth_path + name)
-
-hazy_data_list = os.listdir(ori_hazy_path)
-gth_data_list = os.listdir(ori_gth_path)
-hazy_data_list.sort(key=lambda x: int(x[:2]))
-gth_data_list.sort(key=lambda x: int(x[:2]))
-length = len(hazy_data_list)
+# hazy_data_list = os.listdir(ori_hazy_path)
+# gth_data_list = os.listdir(ori_gth_path)
+# length = len(hazy_data_list)
 count = 0
-for i in range(length):
-    if i < length * 0.8 - 1:
-        flag = 0
-        hazy_path = cut_hazy_path[flag]
-        gth_path = cut_gth_path[flag]
-    elif i <= length * 0.9 - 1:
-        flag = 2
-        hazy_path = cut_hazy_path[flag]
-        gth_path = cut_gth_path[flag]
-    else:
-        flag = 4
-        hazy_path = cut_hazy_path[flag]
-        gth_path = cut_gth_path[flag]
-    haze_image = cv2.imread(ori_hazy_path + hazy_data_list[i])
-    gth_image = cv2.imread(ori_gth_path + gth_data_list[i])
-    height, width, channel = haze_image.shape
-    for n in [1, 0.9]:
-        re_haze_image = cv2.resize(haze_image, (int(width * n), int(height * n)), interpolation=cv2.INTER_CUBIC)
-        re_gth_image = cv2.resize(gth_image, (int(width * n), int(height * n)), interpolation=cv2.INTER_CUBIC)
-        re_height, re_width, channel = re_haze_image.shape
-        height_num = re_height // size
-        width_num = re_width // size
-        height_border = (size * (height_num + 1) - re_height) // height_num
-        width_border = (size * (width_num + 1) - re_width) // width_num
-        for k in range(height_num + 1):
-            for m in range(width_num + 1):
-                # print(count)
-                haze_patch = re_haze_image[k * (size - height_border - 1):k * (size - height_border - 1) + size,
-                             m * (size - width_border - 1):m * (size - width_border - 1) + size]
-                gth_patch = re_gth_image[k * (size - height_border - 1):k * (size - height_border - 1) + size,
-                            m * (size - width_border - 1):m * (size - width_border - 1) + size]
-                # print(patch.shape)
-                (haze_mean, haze_stddv) = cv2.meanStdDev(haze_patch)
-                (gth_mean, gth_stddv) = cv2.meanStdDev(gth_patch)
-                haze_mean = int(np.mean(haze_mean))
-                haze_stddv = int(np.mean(haze_stddv))
-                gth_mean = int(np.mean(gth_mean))
-                gth_stddv = int(np.mean(gth_stddv))
-                # haze_grad = Scharr_demo(haze_patch)
-                # gth_grad = Scharr_demo(gth_patch)
-                if gth_mean >= 127 and gth_stddv <= 10:
-                    hazy_path = cut_hazy_path[flag + 1]
-                    gth_path = cut_gth_path[flag + 1]
-                haze_name = hazy_path + str(count) + '_mean=' + str(haze_mean) + '_stddv=' + str(haze_stddv) + '.jpg'
-                gth_name = gth_path + str(count) + '_mean=' + str(gth_mean) + '_stddv=' + str(gth_stddv) + '.jpg'
-                # print(name)
-                cv2.imwrite(haze_name, haze_patch)
-                cv2.imwrite(gth_name, gth_patch)
-                count += 1
-                # image[:height//8*8, :width//8*8]
-                print(count)
+for i in range(len(ori_hazy_path)):
+    hazy_data_list = os.listdir(ori_hazy_path[i])
+    gth_data_list = os.listdir(ori_gth_path[i])
+    hazy_path = cut_hazy_path[i * 2]
+    gth_path = cut_gth_path[i * 2]
+    for j in range(len(hazy_data_list)):
+        haze_image = cv2.imread(ori_hazy_path[i] + hazy_data_list[j])
+        gth_image = cv2.imread(ori_gth_path[i] + gth_data_list[j])
+        height, width, channel = haze_image.shape
+        for n in [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]:
+            if int(width * n) < size or int(height * n) < size:
+                continue
+            re_haze_image = cv2.resize(haze_image, (int(width * n), int(height * n)), interpolation=cv2.INTER_CUBIC)
+            re_gth_image = cv2.resize(gth_image, (int(width * n), int(height * n)), interpolation=cv2.INTER_CUBIC)
+            re_height, re_width, channel = re_haze_image.shape
+            height_num = re_height // size
+            width_num = re_width // size
+            height_border = (size * (height_num + 1) - re_height) // height_num
+            width_border = (size * (width_num + 1) - re_width) // width_num
+            for k in range(height_num + 1):
+                for m in range(width_num + 1):
+                    # print(count)
+                    haze_patch = re_haze_image[k * (size - height_border - 1):k * (size - height_border - 1) + size,
+                                m * (size - width_border - 1):m * (size - width_border - 1) + size]
+                    gth_patch = re_gth_image[k * (size - height_border - 1):k * (size - height_border - 1) + size,
+                                m * (size - width_border - 1):m * (size - width_border - 1) + size]
+                    # print(patch.shape)
+                    (haze_mean, haze_stddv) = cv2.meanStdDev(haze_patch)
+                    (gth_mean, gth_stddv) = cv2.meanStdDev(gth_patch)
+                    haze_mean = int(np.mean(haze_mean))
+                    haze_stddv = int(np.mean(haze_stddv))
+                    gth_mean = int(np.mean(gth_mean))
+                    gth_stddv = int(np.mean(gth_stddv))
+                    # haze_grad = Scharr_demo(haze_patch)
+                    # gth_grad = Scharr_demo(gth_patch)
+                    if gth_stddv <= 10:
+                        hazy_path = cut_hazy_path[i * 2 + 1]
+                        gth_path = cut_gth_path[i * 2 + 1]
+                    else:
+                        hazy_path = cut_hazy_path[i * 2]
+                        gth_path = cut_gth_path[i * 2]
+                    haze_name = hazy_path + str(count) + '_mean=' + str(haze_mean) + '_stddv=' + str(haze_stddv) + '.jpg'
+                    gth_name = gth_path + str(count) + '_mean=' + str(gth_mean) + '_stddv=' + str(gth_stddv) + '.jpg'
+                    # print(name)
+                    cv2.imwrite(haze_name, haze_patch)
+                    cv2.imwrite(gth_name, gth_patch)
+                    count += 1
+                    # image[:height//8*8, :width//8*8]
+                    print(count)
