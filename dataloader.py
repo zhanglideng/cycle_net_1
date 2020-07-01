@@ -54,9 +54,11 @@ class Cycle_DataSet(Dataset):
         haze_image = Image.open(self.haze_path + haze_name + '.png')
         gt_image = Image.open(self.gt_path + gth_name + '.png')
         # 数据增强
-        haze_image, gt_image = data_aug(haze_image, gt_image)
-        haze_image = np.asarray(haze_image)
-        gt_image = np.asarray(gt_image)
+        if self.flag == 'train':
+            haze_image, gt_image = data_aug(haze_image, gt_image)
+            haze_image = np.asarray(haze_image)
+            gt_image = np.asarray(gt_image)
+
         if self.transform1:
             haze_image = self.transform1(haze_image)
             gt_image = self.transform1(gt_image)

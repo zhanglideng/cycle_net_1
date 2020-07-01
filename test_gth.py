@@ -76,11 +76,11 @@ for haze_name, haze_image, gt_image in test_data_loader:
         # J = net(haze_image)
         haze_image = haze_image.cuda()
         gt_image = gt_image.cuda()
-        J1 = net(haze_image, haze_image)
-        J2 = net(J1, haze_image)
-        J3 = net(J2, haze_image)
-        J4 = net(J3, haze_image)
-        J5 = net(J4, haze_image)
+        J1 = net(gt_image, gt_image)
+        J2 = net(J1, gt_image)
+        J3 = net(J2, gt_image)
+        J4 = net(J3, gt_image)
+        J5 = net(J4, gt_image)
         loss_image = [J1, J2, J3, J4, J5, gt_image]
         loss = loss_test(loss_image)
 
@@ -105,5 +105,4 @@ for haze_name, haze_image, gt_image in test_data_loader:
         im_output_for_save = get_image_for_save(J5)
         filename = haze_name[0] + '_5.bmp'
         im_output_for_save.save(os.path.join(save_path, filename))
-
 print("Finished!")
