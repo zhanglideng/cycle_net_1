@@ -13,6 +13,7 @@ def Scharr_demo(image):
     # print(np.mean(gradxy))
     return int(np.mean(gradxy))
 
+
 if os.path.exists('/input'):
     ori_data_path = '/input/data/ntire_2018'
     cut_data_path = '/input/data/cut_ntire_2018'
@@ -73,7 +74,7 @@ for i in range(len(ori_hazy_path)):
                 for m in range(width_num + 1):
                     # print(count)
                     haze_patch = re_haze_image[k * (size - height_border - 1):k * (size - height_border - 1) + size,
-                                m * (size - width_border - 1):m * (size - width_border - 1) + size]
+                                 m * (size - width_border - 1):m * (size - width_border - 1) + size]
                     gth_patch = re_gth_image[k * (size - height_border - 1):k * (size - height_border - 1) + size,
                                 m * (size - width_border - 1):m * (size - width_border - 1) + size]
                     # print(patch.shape)
@@ -91,7 +92,8 @@ for i in range(len(ori_hazy_path)):
                     else:
                         hazy_path = cut_hazy_path[i * 2]
                         gth_path = cut_gth_path[i * 2]
-                    haze_name = hazy_path + str(count) + '_mean=' + str(haze_mean) + '_stddv=' + str(haze_stddv) + '.jpg'
+                    haze_name = hazy_path + str(count) + '_mean=' + str(haze_mean) + '_stddv=' + str(
+                        haze_stddv) + '.jpg'
                     gth_name = gth_path + str(count) + '_mean=' + str(gth_mean) + '_stddv=' + str(gth_stddv) + '.jpg'
                     # print(name)
                     cv2.imwrite(haze_name, haze_patch)
