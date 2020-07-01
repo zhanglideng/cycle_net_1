@@ -86,18 +86,14 @@ for i in range(len(ori_hazy_path)):
                     gth_stddv = int(np.mean(gth_stddv))
                     # haze_grad = Scharr_demo(haze_patch)
                     # gth_grad = Scharr_demo(gth_patch)
-                    if gth_stddv <= 10:
-                        hazy_path = cut_hazy_path[i * 2 + 1]
-                        gth_path = cut_gth_path[i * 2 + 1]
-                    else:
+                    if gth_stddv >= 10:
                         hazy_path = cut_hazy_path[i * 2]
                         gth_path = cut_gth_path[i * 2]
-                    haze_name = hazy_path + str(count) + '_mean=' + str(haze_mean) + '_stddv=' + str(
-                        haze_stddv) + '.jpg'
-                    gth_name = gth_path + str(count) + '_mean=' + str(gth_mean) + '_stddv=' + str(gth_stddv) + '.jpg'
-                    # print(name)
-                    cv2.imwrite(haze_name, haze_patch)
-                    cv2.imwrite(gth_name, gth_patch)
-                    count += 1
+                        haze_name = hazy_path + str(count) + '.jpg'
+                        gth_name = gth_path + str(count) + '.jpg'
+                        # print(name)
+                        cv2.imwrite(haze_name, haze_patch)
+                        cv2.imwrite(gth_name, gth_patch)
+                        count += 1
                     # image[:height//8*8, :width//8*8]
                     print(count)
