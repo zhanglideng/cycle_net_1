@@ -43,6 +43,7 @@ class Cycle_DataSet(Dataset):
         self.haze_data_list.sort(key=lambda x: int(x[:4]))
         self.gt_data_list = os.listdir(self.gt_path)
         self.gt_data_list.sort(key=lambda x: int(x[:4]))
+        self.haze_data_list = self.haze_data_list + self.gt_data_list
         self.length = len(self.haze_data_list)
 
     def __len__(self):
@@ -51,8 +52,11 @@ class Cycle_DataSet(Dataset):
     def __getitem__(self, idx):
         haze_name = self.haze_data_list[idx][:-4]
         gth_name = haze_name[:4]
-        haze_image = Image.open(self.haze_path + haze_name + '.png')
         gt_image = Image.open(self.gt_path + gth_name + '.png')
+        if len(haze_name) == 4:
+            haze_image = gt_image
+        else:
+            haze_image = Image.open(self.haze_path + haze_name + '.png')
         # 数据增强
         if self.flag == 'train':
             haze_image, gt_image = data_aug(haze_image, gt_image)
