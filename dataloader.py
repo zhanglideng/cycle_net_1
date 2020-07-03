@@ -68,3 +68,36 @@ class Cycle_DataSet(Dataset):
             gt_image = self.transform1(gt_image)
 
         return haze_name, haze_image, gt_image
+
+
+class Ntire_DataSet(Dataset):
+    def __init__(self, transform1, path=None, flag='train'):
+        self.flag = flag
+        self.transform1 = transform1
+        self.haze_path, self.gt_path = path
+        self.haze_data_list = os.listdir(self.haze_path)
+        self.haze_data_list.sort(key=lambda x: int(x[:5]))
+        self.gt_data_list = os.listdir(self.gt_path)
+        self.gt_data_list.sort(key=lambda x: int(x[:5]))
+        self.haze_data_list = self.haze_data_list + self.gt_data_list
+        self.length = len(self.haze_data_list)
+
+    def __len__(self):
+        return self.length
+
+    def __getitem__(self, idx):
+        haze_name = self.haze_data_list[idx][:-4]
+        gth_name = haze_name
+        gt_image = Image.open(self.gt_path + gth_name + '.png')
+        haze_image = Image.open(self.haze_path + haze_name + '.png')
+        # 数据增强
+        if self.flag == 'train':
+            haze_image, gt_image = data_aug(haze_image, gt_image)
+            haze_image = np.asarray(haze_image)
+            gt_image = np.asarray(gt_image)
+
+        if self.transform1:
+            haze_image = self.transform1(haze_image)
+            gt_image = self.transform1(gt_image)
+
+        return haze_name, haze_image, gt_image

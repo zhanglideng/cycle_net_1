@@ -40,18 +40,17 @@ else:
     data_path = '/home/ljh/zhanglideng'
     weight = [5, 1, 1, 10, 2, 2, 20, 4, 4]
 loss_num = len(weight)
-
+'''
 train_hazy_path = data_path + '/data/nyu_cycle/train_hazy/'
 val_hazy_path = data_path + '/data/nyu_cycle/val_hazy/'
 train_gth_path = data_path + '/data/nyu_cycle/train_gth/'
 val_gth_path = data_path + '/data/nyu_cycle/val_gth/'
 '''
-train_hazy_path = data_path + '/data/ntire_cycle/train_hazy/'
-val_hazy_path = data_path + '/data/ntire_cycle/val_hazy/'
-train_gth_path = data_path + '/data/ntire_cycle/train_gth/'
-val_gth_path = data_path + '/data/ntire_cycle/val_gth/'
-'''
 
+train_hazy_path = data_path + '/data/cut_ntire_cycle/train_hazy/'
+val_hazy_path = data_path + '/data/cut_ntire_cycle/val_hazy/'
+train_gth_path = data_path + '/data/cut_ntire_cycle/train_gth/'
+val_gth_path = data_path + '/data/cut_ntire_cycle/val_gth/'
 
 save_path = './cycle_result_' + time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime()) + '/'
 save_model_name = save_path + 'cycle_model.pt'  # 保存模型的路径
@@ -77,12 +76,12 @@ if not os.path.exists(save_path):
 transform = transforms.Compose([transforms.ToTensor()])
 # 读取训练集数据
 train_path_list = [train_hazy_path, train_gth_path]
-train_data = Cycle_DataSet(transform, train_path_list)
+train_data = Ntire_DataSet(transform, train_path_list)
 train_data_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 
 # 读取验证集数据
 val_path_list = [val_hazy_path, val_gth_path]
-val_data = Cycle_DataSet(transform, val_path_list)
+val_data = Ntire_DataSet(transform, val_path_list)
 val_data_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 
 # 定义优化器

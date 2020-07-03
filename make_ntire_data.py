@@ -16,10 +16,10 @@ def Scharr_demo(image):
 
 if os.path.exists('/input'):
     ori_data_path = '/input/data/ntire_2018'
-    cut_data_path = '/input/data/cut_ntire_2018'
+    cut_data_path = '/input/data/cut_ntire_cycle'
 else:
     ori_data_path = '/home/ljh/zhanglideng/data/ntire_2018'
-    cut_data_path = '/home/ljh/zhanglideng/data/cut_ntire_2018'
+    cut_data_path = '/home/ljh/zhanglideng/data/cut_ntire_cycle'
 ori_hazy_path = [ori_data_path + '/train_hazy/', ori_data_path + '/val_hazy/', ori_data_path + '/test_hazy/']
 ori_gth_path = [ori_data_path + '/train_gth/', ori_data_path + '/val_gth/', ori_data_path + '/test_gth/']
 cut_hazy_path = [cut_data_path + '/train_hazy/', cut_data_path + '/flat_train_hazy/',
