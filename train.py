@@ -45,6 +45,13 @@ train_hazy_path = data_path + '/data/nyu_cycle/train_hazy/'
 val_hazy_path = data_path + '/data/nyu_cycle/val_hazy/'
 train_gth_path = data_path + '/data/nyu_cycle/train_gth/'
 val_gth_path = data_path + '/data/nyu_cycle/val_gth/'
+'''
+train_hazy_path = data_path + '/data/ntire_cycle/train_hazy/'
+val_hazy_path = data_path + '/data/ntire_cycle/val_hazy/'
+train_gth_path = data_path + '/data/ntire_cycle/train_gth/'
+val_gth_path = data_path + '/data/ntire_cycle/val_gth/'
+'''
+
 
 save_path = './cycle_result_' + time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime()) + '/'
 save_model_name = save_path + 'cycle_model.pt'  # 保存模型的路径
