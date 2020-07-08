@@ -76,10 +76,9 @@ class Ntire_DataSet(Dataset):
         self.transform1 = transform1
         self.haze_path, self.gt_path = path
         self.haze_data_list = os.listdir(self.haze_path)
-        self.haze_data_list.sort(key=lambda x: int(x[:5]))
+        self.haze_data_list.sort(key=lambda x: int(x[:-4]))
         self.gt_data_list = os.listdir(self.gt_path)
-        self.gt_data_list.sort(key=lambda x: int(x[:5]))
-        self.haze_data_list = self.haze_data_list + self.gt_data_list
+        self.gt_data_list.sort(key=lambda x: int(x[:-4]))
         self.length = len(self.haze_data_list)
 
     def __len__(self):
@@ -88,8 +87,8 @@ class Ntire_DataSet(Dataset):
     def __getitem__(self, idx):
         haze_name = self.haze_data_list[idx][:-4]
         gth_name = haze_name
-        gt_image = Image.open(self.gt_path + gth_name + '.png')
-        haze_image = Image.open(self.haze_path + haze_name + '.png')
+        gt_image = Image.open(self.gt_path + gth_name + '.jpg')
+        haze_image = Image.open(self.haze_path + haze_name + '.jpg')
         # 数据增强
         if self.flag == 'train':
             haze_image, gt_image = data_aug(haze_image, gt_image)

@@ -16,15 +16,15 @@ import numpy as np
 from utils.loss import *
 from utils.print_time import *
 from utils.save_log_to_excel import *
-from dataloader import Cycle_DataSet
+from dataloader import *
 from new_cycle_model import *
 import time
 import xlwt
 from utils.ms_ssim import *
 
-LR = 0.0005  # 学习率
+LR = 0.001  # 学习率
 EPOCH = 200  # 轮次
-BATCH_SIZE = 1  # 批大小
+BATCH_SIZE = 2  # 批大小
 excel_train_line = 1  # train_excel写入的行的下标
 excel_val_line = 1  # val_excel写入的行的下标
 excel_val_every_image_line = 1
@@ -148,9 +148,9 @@ for epoch in range(EPOCH):
             J3 = net(J2, haze_image)
             loss_image = [J1, J2, J3, gt_image]
             loss, temp_loss = loss_function(loss_image, weight)
-            excel_val_every_image_line = write_excel_every_val(sheet=sheet_val_every_image,
-                                                               line=excel_val_every_image_line, epoch=epoch,
-                                                               name=name[0], loss=temp_loss)
+            # excel_val_every_image_line = write_excel_every_val(sheet=sheet_val_every_image,
+            #                                                   line=excel_val_every_image_line, epoch=epoch,
+            #                                                    name=name[0], loss=temp_loss)
             f.save(excel_save)
             # loss_image = [J, gt_image, J_reconstruct, t, t_gth, haze_reconstruct, haze_image]
             # loss, temp_loss = loss_function(loss_image, weight)
