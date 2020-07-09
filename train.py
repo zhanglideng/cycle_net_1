@@ -35,10 +35,10 @@ itr_to_excel = 128 // BATCH_SIZE  # 训练64次后保存相关数据到excel
 # [l2_1, l2_2, l2_3, l2_2_1, l2_3_2, ssim_1, ssim_2, ssim_3, ssim_2_1, ssim_3_2,  vgg_1, vgg_2, vgg_3, vgg_2_1, vgg_3_2]
 if os.path.exists('/input'):
     data_path = '/input'
-    weight = [5, 20, 80, 1, 4, 16, 1, 4, 16]
+    weight = [5, 20, 80, 100, 100, 1, 4, 16, 100, 100, 1, 4, 16, 100, 100]
 else:
     data_path = '/home/ljh/zhanglideng'
-    weight = [5, 10, 20, 1, 2, 4, 1, 2, 4]
+    weight = [5, 10, 20, 100, 100, 1, 2, 4, 100, 100, 1, 2, 4, 100, 100]
 loss_num = len(weight)
 '''
 train_hazy_path = data_path + '/data/nyu_cycle/train_hazy/'
