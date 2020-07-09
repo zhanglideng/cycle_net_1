@@ -56,18 +56,30 @@ def color_loss(input_image, output_image):
 
 def loss_function(image, weight):
     J1, J2, J3, gt_image = image
-    loss_train = [l2_loss(J1, gt_image),
-                  l2_loss(J2, gt_image),
-                  l2_loss(J3, gt_image),
-                  1 - ssim_loss(J1, gt_image),
-                  1 - ssim_loss(J2, gt_image),
-                  1 - ssim_loss(J3, gt_image),
-                  vgg_loss(J1, gt_image),
-                  vgg_loss(J2, gt_image),
-                  vgg_loss(J3, gt_image)]
+    l2_1 = l2_loss(J1, gt_image)
+    l2_2 = l2_loss(J2, gt_image)
+    l2_3 = l2_loss(J3, gt_image)
+    l2_2_1 = l2_2 - l2_1
+    l2_3_2 = l2_3 - l2_2
+    ssim_1 = 1 - ssim_loss(J1, gt_image)
+    ssim_2 = 1 - ssim_loss(J2, gt_image)
+    ssim_3 = 1 - ssim_loss(J3, gt_image)
+    ssim_2_1 = ssim_2 - ssim_1
+    ssim_3_2 = ssim_3 - ssim_2
+    vgg_1 = vgg_loss(J1, gt_image)
+    vgg_2 = vgg_loss(J2, gt_image)
+    vgg_3 = vgg_loss(J3, gt_image)
+    vgg_2_1 = vgg_2 - vgg_1
+    vgg_3_2 = vgg_3 - vgg_2
+    loss_train = [l2_1, l2_2, l2_3, l2_2_1, l2_3_2,
+                  ssim_1, ssim_2, ssim_3, ssim_2_1, ssim_3_2,
+                  vgg_1, vgg_2, vgg_3, vgg_2_1, vgg_3_2]
     loss_sum = 0
     for i in range(len(loss_train)):
-        loss_sum = loss_sum + loss_train[i] * weight[i]
+        if loss_train[i] < 0:
+            loss_sum = loss_sum + loss_train[i] * 0
+        else:
+            loss_sum = loss_sum + loss_train[i] * weight[i]
         loss_train[i] = loss_train[i].item()
     return loss_sum, loss_train
 

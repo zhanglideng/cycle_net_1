@@ -32,13 +32,13 @@ alpha = 1  # 损失函数的权重
 accumulation_steps = 8  # 梯度积累的次数，类似于batch-size=64
 # itr_to_lr = 10000 // BATCH_SIZE  # 训练10000次后损失下降50%
 itr_to_excel = 128 // BATCH_SIZE  # 训练64次后保存相关数据到excel
-
+# [l2_1, l2_2, l2_3, l2_2_1, l2_3_2, ssim_1, ssim_2, ssim_3, ssim_2_1, ssim_3_2,  vgg_1, vgg_2, vgg_3, vgg_2_1, vgg_3_2]
 if os.path.exists('/input'):
     data_path = '/input'
-    weight = [5, 1, 1, 20, 4, 4, 80, 16, 16]
+    weight = [5, 20, 80, 1, 4, 16, 1, 4, 16]
 else:
     data_path = '/home/ljh/zhanglideng'
-    weight = [5, 1, 1, 10, 2, 2, 20, 4, 4]
+    weight = [5, 10, 20, 1, 2, 4, 1, 2, 4]
 loss_num = len(weight)
 '''
 train_hazy_path = data_path + '/data/nyu_cycle/train_hazy/'
