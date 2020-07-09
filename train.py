@@ -52,10 +52,10 @@ else:
     train_gth_path = data_path + '/data/cut_ntire_cycle/train_gth/'
     val_gth_path = data_path + '/data/cut_ntire_cycle/val_gth/'
 
-save_path = './cycle_result_' + time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime()) + '/'
+save_path = data_path + '/cycle_result_' + time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime()) + '/'
 save_model_name = save_path + 'cycle_model.pt'  # 保存模型的路径
 excel_save = save_path + 'result.xls'  # 保存excel的路径
-mid_save_ed_path = './mid_model/cycle_model.pt'  # 保存的中间模型，用于下一步训练。
+mid_save_ed_path = './mid_model/cycle_model.pt'  # 保存的中间模型，用于意外停止后继续训练。
 
 # 初始化excel
 f, sheet_train, sheet_val, sheet_val_every_image = init_excel(kind='train')
