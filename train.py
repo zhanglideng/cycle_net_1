@@ -22,9 +22,9 @@ import time
 import xlwt
 from utils.ms_ssim import *
 
-LR = 0.001  # 学习率
+LR = 0.0005  # 学习率
 EPOCH = 200  # 轮次
-BATCH_SIZE = 2  # 批大小
+BATCH_SIZE = 1  # 批大小
 excel_train_line = 1  # train_excel写入的行的下标
 excel_val_line = 1  # val_excel写入的行的下标
 excel_val_every_image_line = 1
@@ -32,6 +32,7 @@ alpha = 1  # 损失函数的权重
 accumulation_steps = 8  # 梯度积累的次数，类似于batch-size=64
 # itr_to_lr = 10000 // BATCH_SIZE  # 训练10000次后损失下降50%
 itr_to_excel = 128 // BATCH_SIZE  # 训练64次后保存相关数据到excel
+train_data = 'NYU'  # 'NYU'
 # [l2_1, l2_2, l2_3, l2_2_1, l2_3_2, ssim_1, ssim_2, ssim_3, ssim_2_1, ssim_3_2,  vgg_1, vgg_2, vgg_3, vgg_2_1, vgg_3_2]
 if os.path.exists('/input'):
     data_path = '/input'
@@ -40,17 +41,16 @@ else:
     data_path = '/home/ljh/zhanglideng'
     weight = [5, 10, 20, 100, 100, 1, 2, 4, 100, 100, 1, 2, 4, 100, 100]
 loss_num = len(weight)
-'''
-train_hazy_path = data_path + '/data/nyu_cycle/train_hazy/'
-val_hazy_path = data_path + '/data/nyu_cycle/val_hazy/'
-train_gth_path = data_path + '/data/nyu_cycle/train_gth/'
-val_gth_path = data_path + '/data/nyu_cycle/val_gth/'
-'''
-
-train_hazy_path = data_path + '/data/cut_ntire_cycle/train_hazy/'
-val_hazy_path = data_path + '/data/cut_ntire_cycle/val_hazy/'
-train_gth_path = data_path + '/data/cut_ntire_cycle/train_gth/'
-val_gth_path = data_path + '/data/cut_ntire_cycle/val_gth/'
+if train_data == 'NYU':
+    train_hazy_path = data_path + '/data/nyu_cycle/train_hazy/'
+    val_hazy_path = data_path + '/data/nyu_cycle/val_hazy/'
+    train_gth_path = data_path + '/data/nyu_cycle/train_gth/'
+    val_gth_path = data_path + '/data/nyu_cycle/val_gth/'
+else:
+    train_hazy_path = data_path + '/data/cut_ntire_cycle/train_hazy/'
+    val_hazy_path = data_path + '/data/cut_ntire_cycle/val_hazy/'
+    train_gth_path = data_path + '/data/cut_ntire_cycle/train_gth/'
+    val_gth_path = data_path + '/data/cut_ntire_cycle/val_gth/'
 
 save_path = './cycle_result_' + time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime()) + '/'
 save_model_name = save_path + 'cycle_model.pt'  # 保存模型的路径
@@ -72,16 +72,16 @@ else:
 if not os.path.exists(save_path):
     os.makedirs(save_path)
 
-# 数据转换模式
 transform = transforms.Compose([transforms.ToTensor()])
-# 读取训练集数据
 train_path_list = [train_hazy_path, train_gth_path]
-train_data = Ntire_DataSet(transform, train_path_list)
-train_data_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
-
-# 读取验证集数据
 val_path_list = [val_hazy_path, val_gth_path]
-val_data = Ntire_DataSet(transform, val_path_list)
+if train_data == 'NYU':
+    train_data = Cycle_DataSet(transform, train_path_list)
+    val_data = Cycle_DataSet(transform, val_path_list)
+else:
+    train_data = Ntire_DataSet(transform, train_path_list)
+    val_data = Ntire_DataSet(transform, val_path_list)
+train_data_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 val_data_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 
 # 定义优化器
