@@ -35,7 +35,7 @@ def data_aug(img1, img2):
 
 
 class Cycle_DataSet(Dataset):
-    def __init__(self, transform1, path=None, flag='train'):
+    def __init__(self, transform1, is_gth_train, path=None, flag='train', ):
         self.flag = flag
         self.transform1 = transform1
         self.haze_path, self.gt_path = path
@@ -43,7 +43,8 @@ class Cycle_DataSet(Dataset):
         self.haze_data_list.sort(key=lambda x: int(x[:4]))
         self.gt_data_list = os.listdir(self.gt_path)
         self.gt_data_list.sort(key=lambda x: int(x[:4]))
-        self.haze_data_list = self.haze_data_list + self.gt_data_list
+        if is_gth_train:
+            self.haze_data_list = self.haze_data_list + self.gt_data_list
         self.length = len(self.haze_data_list)
 
     def __len__(self):
@@ -71,7 +72,7 @@ class Cycle_DataSet(Dataset):
 
 
 class Ntire_DataSet(Dataset):
-    def __init__(self, transform1, path=None, flag='train'):
+    def __init__(self, transform1, is_gth_train, path=None, flag='train'):
         self.flag = flag
         self.transform1 = transform1
         self.haze_path, self.gt_path = path
@@ -79,6 +80,8 @@ class Ntire_DataSet(Dataset):
         self.haze_data_list.sort(key=lambda x: int(x[:-4]))
         self.gt_data_list = os.listdir(self.gt_path)
         self.gt_data_list.sort(key=lambda x: int(x[:-4]))
+        if is_gth_train:
+            self.haze_data_list = self.haze_data_list + self.gt_data_list
         self.length = len(self.haze_data_list)
 
     def __len__(self):
