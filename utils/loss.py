@@ -112,8 +112,7 @@ def loss_test(image):
                   vgg_loss(J1, J2),
                   vgg_loss(J2, J3),
                   vgg_loss(J3, J4),
-                  vgg_loss(J4, J5),
-                  ]
+                  vgg_loss(J4, J5)]
     for i in range(len(loss_train)):
         loss_train[i] = loss_train[i].item()
     return loss_train

@@ -2,6 +2,7 @@
   <dictionary name="random">
     <words>
       <w>conv</w>
+      <w>dehaze</w>
       <w>guidedfilter</w>
       <w>ntire</w>
       <w>relu</w>
