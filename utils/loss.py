@@ -259,7 +259,7 @@ class train_loss_net(nn.Module):
         super(train_loss_net, self).__init__()
         self.l2 = MSE()
         self.ssim = MS_SSIM(max_val=1, channel=channel)
-        self.vgg = vgg_loss()
+        self.vgg_loss = vgg_loss()
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, j1, j2, j3, gth, weight):
@@ -267,13 +267,14 @@ class train_loss_net(nn.Module):
         l2_2 = self.l2(j2, gth)
         l2_3 = self.l2(j3, gth)
 
-        ssim_1 = self.ssim(j1, gth)
-        ssim_2 = self.ssim(j2, gth)
-        ssim_3 = self.ssim(j3, gth)
+        ssim_1 = 1 - self.ssim(j1, gth)
+        ssim_2 = 1 - self.ssim(j2, gth)
+        ssim_3 = 1 - self.ssim(j3, gth)
 
-        vgg_1_1, vgg_1_2, vgg_1_3, vgg_1_4 = self.vgg(j1, gth)
-        vgg_2_1, vgg_2_2, vgg_2_3, vgg_2_4 = self.vgg(j2, gth)
-        vgg_3_1, vgg_3_2, vgg_3_3, vgg_3_4 = self.vgg(j3, gth)
+        vgg_1_1, vgg_1_2, vgg_1_3, vgg_1_4 = self.vgg_loss(j1, gth)
+        vgg_2_1, vgg_2_2, vgg_2_3, vgg_2_4 = self.vgg_loss(j2, gth)
+        vgg_3_1, vgg_3_2, vgg_3_3, vgg_3_4 = self.vgg_loss(j3, gth)
+        # print(vgg_1_1)
 
         l2_map = [l2_1, l2_2, l2_3, self.relu(l2_2 - l2_1), self.relu(l2_3 - l2_2)]
         ssim_map = [ssim_1, ssim_2, ssim_3, self.relu(ssim_2 - ssim_1), self.relu(ssim_3 - ssim_2)]
@@ -288,16 +289,21 @@ class train_loss_net(nn.Module):
         for i in range(len(l2_map)):
             loss_for_train = loss_for_train + torch.mean(l2_map[i]) * weight[i]
             loss_for_save[i] = torch.mean(l2_map[i]).item()
+            # print(loss_for_save)
 
         for i in range(len(ssim_map)):
             loss_for_train = loss_for_train + torch.mean(ssim_map[i]) * weight[i + len(l2_map)]
             loss_for_save[i + len(l2_map)] = torch.mean(ssim_map[i]).item()
+            # print(ssim_map[i])
 
         for i in range(len(vgg_map)):
             loss_for_train = loss_for_train + torch.mean(vgg_map[i]) * weight[int(i / 4)] * 0.25
-            loss_for_save[int(i / 4)] = loss_for_save[int(i / 4)] + torch.mean(vgg_map[i]).item()
+            loss_for_save[int(i / 4) + len(l2_map) + len(ssim_map)] = loss_for_save[int(i / 4)] + torch.mean(
+                vgg_map[i]).item()
+            # print(loss_for_save)
 
         return loss_for_train, loss_for_save
+
 
 '''
 class test_loss_net(nn.Module):
