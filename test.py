@@ -61,7 +61,7 @@ net = net.cuda()
 transform = transforms.Compose([transforms.ToTensor()])
 
 test_path_list = [test_hazy_path, test_gth_path]
-test_data = Cycle_DataSet(transform, test_path_list, flag='test')
+test_data = Cycle_DataSet(transform, is_gth_train=False, path=test_path_list, flag='test')
 test_data_loader = DataLoader(test_data, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
 
 count = 0

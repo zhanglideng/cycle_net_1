@@ -30,7 +30,7 @@ parser.add_argument('-data_path', help='Set the data_path', default='/input', ty
 parser.add_argument('-pre_model', help='Whether to use a pre-trained model', default=True, type=bool)
 parser.add_argument('-gth_train', help='Whether to add Gth training', default=False, type=bool)
 parser.add_argument('-loss_weight', help='Set the loss weight',
-                    default=[5, 20, 80, 10, 10, 1, 4, 16, 10, 10, 1, 4, 16, 10, 10], type=list)
+                    default=[5, 20, 80, 0, 0, 5, 20, 80, 0, 0, 5, 20, 80, 0, 0], type=list)
 args = parser.parse_args()
 
 learning_rate = args.learning_rate  # 学习率
@@ -52,6 +52,7 @@ if Is_pre_model:
 else:
     print('创建新模型')
     net = cycle(dropout=0.3).cuda()
+loss_net = train_loss_net.cuda()
 
 total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
 print("Total_params: {}".format(total_params))
@@ -128,8 +129,9 @@ for epo in range(epoch):
         J1 = net(haze_image, haze_image)
         J2 = net(J1, haze_image)
         J3 = net(J2, haze_image)
-        loss_image = [J1, J2, J3, gt_image]
-        loss, temp_loss = loss_function(loss_image, weight)
+        loss, temp_loss = loss_function(J1, J2, J3, gt_image, weight)
+        # loss_image = [J1, J2, J3, gt_image]
+        # loss, temp_loss = loss_function(loss_image, weight)
         train_loss += loss.item()
         loss_excel = [loss_excel[i] + temp_loss[i] for i in range(len(loss_excel))]
         loss = loss / accumulation_steps
@@ -154,8 +156,9 @@ for epo in range(epoch):
             J1 = net(haze_image, haze_image)
             J2 = net(J1, haze_image)
             J3 = net(J2, haze_image)
-            loss_image = [J1, J2, J3, gt_image]
-            loss, temp_loss = loss_function(loss_image, weight)
+            loss, temp_loss = loss_function(J1, J2, J3, gt_image, weight)
+            # loss_image = [J1, J2, J3, gt_image]
+            # loss, temp_loss = loss_function(loss_image, weight)
             loss_excel = [loss_excel[i] + temp_loss[i] for i in range(len(loss_excel))]
     train_loss = train_loss / len(train_data_loader)
     loss_excel = [loss_excel[i] / len(val_data_loader) for i in range(len(loss_excel))]
