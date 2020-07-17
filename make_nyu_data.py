@@ -13,13 +13,18 @@ import cv2
 import gc
 import time
 
-train_hazy_path = '/input/data/nyu_cycle/train_hazy/'
-val_hazy_path = '/input/data/nyu_cycle/val_hazy/'
-test_hazy_path = '/input/data/nyu_cycle/test_hazy/'
+if os.path.exists('/input'):
+    data_path = '/input/data/'
+else:
+    data_path = '/home/liu/zhanglideng/data/'
 
-train_gth_path = '/input/data/nyu_cycle/train_gth/'
-val_gth_path = '/input/data/nyu_cycle/val_gth/'
-test_gth_path = '/input/data/nyu_cycle/test_gth/'
+train_hazy_path = data_path + 'nyu_cycle/train_hazy/'
+val_hazy_path = data_path + 'nyu_cycle/val_hazy/'
+test_hazy_path = data_path + 'nyu_cycle/test_hazy/'
+
+train_gth_path = data_path + 'nyu_cycle/train_gth/'
+val_gth_path = data_path + 'nyu_cycle/val_gth/'
+test_gth_path = data_path + 'nyu_cycle/test_gth/'
 
 mat_path = '/input/data/nyu_depth_v2_labeled.mat'
 
