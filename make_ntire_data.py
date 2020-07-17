@@ -29,7 +29,7 @@ cut_hazy_path = [cut_data_path + '/train_hazy/', cut_data_path + '/flat_train_ha
 cut_gth_path = [cut_data_path + '/train_gth/', cut_data_path + '/flat_train_gth/',
                 cut_data_path + '/val_gth/', cut_data_path + '/flat_val_gth/',
                 cut_data_path + '/test_gth/', cut_data_path + '/flat_test_gth/']
-size = 512
+size = 256
 '''
 01_indoor_GT.jpg
 01_indoor_hazy.jpg

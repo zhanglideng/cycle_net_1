@@ -26,6 +26,9 @@ mat_path = '/input/data/nyu_depth_v2_labeled.mat'
 haze_num = 2  # 无雾图生成几张有雾图
 sigma = 1  # 高斯噪声的方差
 trim_size = 16
+size = 256
+air_light_range = [0.7, 1.0]
+fog_range = [0.8, 1.2]
 '''
 清晰图像
 有雾图20张
@@ -77,6 +80,7 @@ if __name__ == '__main__':
     print(images.shape)
     length = depths.shape[0]
     start = time.time()
+    count = 0
     for i in range(length):
         if i < length * 0.8 - 1:
             hazy_path = train_hazy_path
@@ -91,39 +95,52 @@ if __name__ == '__main__':
         m = depth.max()
         depth = depth / m
         image = images[i]
-        print('dealing:' + str(i) + '.png')
         image_gray = image[0] * 0.299 + image[1] * 0.587 + image[2] * 0.114
         depth = Guidedfilter(image_gray, depth, 14, 0.0001)
+        height, width, channel = image.shape
+        height_num = height // size
+        width_num = width // size
+        height_border = (size * (height_num + 1) - height) // height_num
+        width_border = (size * (width_num + 1) - width) // width_num
 
-        r = Image.fromarray(images[i][0]).convert('L')
-        g = Image.fromarray(images[i][1]).convert('L')
-        b = Image.fromarray(images[i][2]).convert('L')
-        img = Image.merge("RGB", (r, g, b))
-        save_path = gth_path + '0' * (4 - len(str(i))) + str(i) + '.png'
-        img.save(save_path, 'png', optimize=True)
+        for k in range(height_num + 1):
+            for m in range(width_num + 1):
+                print('dealing:' + str(i) + '.png')
+                image_patch = image[k * (size - height_border - 1):k * (size - height_border - 1) + size,
+                              m * (size - width_border - 1):m * (size - width_border - 1) + size]
+                gth_patch = depth[k * (size - height_border - 1):k * (size - height_border - 1) + size,
+                            m * (size - width_border - 1):m * (size - width_border - 1) + size]
 
-        for rand in range(haze_num):
-            # image_out = np.zeros((3, depth.shape[0], depth.shape[1]))
-            noise = np.random.randn(1, depth.shape[0], depth.shape[1]) * sigma
-            noise = np.concatenate((noise, noise, noise))
+                r = Image.fromarray(image_patch[i][0]).convert('L')
+                g = Image.fromarray(image_patch[i][1]).convert('L')
+                b = Image.fromarray(image_patch[i][2]).convert('L')
+                img = Image.merge("RGB", (r, g, b))
+                save_path = gth_path + '0' * (5 - len(str(count))) + str(count) + '.png'
+                img.save(save_path, 'png', optimize=True)
 
-            fog_A = round(random.uniform(0.7, 1), 2)
-            map_A = np.ones((3, depth.shape[0], depth.shape[1])) * fog_A
+                for rand in range(haze_num):
+                    # image_out = np.zeros((3, depth.shape[0], depth.shape[1]))
+                    noise = np.random.randn(1, depth.shape[0], depth.shape[1]) * sigma
+                    noise = np.concatenate((noise, noise, noise))
 
-            fog_density = round(random.uniform(0.8, 1.2), 2)
+                    fog_A = round(random.uniform(air_light_range[0], air_light_range[1]), 2)
+                    map_A = np.ones((3, depth.shape[0], depth.shape[1])) * fog_A
+                    fog_density = round(random.uniform(fog_range[0], fog_range[1]), 2)
 
-            t = np.exp(-1 * fog_density * depth)
-            t = np.expand_dims(t, axis=0)
-            t = np.concatenate((t, t, t))
-            image_out = np.add(np.multiply(image, t), np.add(255 * np.multiply(map_A, (1 - t)), noise))
-            image_out[image_out < 0] = 0
-            image_out[image_out > 255] = 255
-            image_path = hazy_path + '0' * (4 - len(str(i))) + str(
-                i) + '_a=' + '%.02f' % fog_A + '_b=' + '%.02f' % fog_density + '.png'
-            image_out = np.swapaxes(image_out, 0, 2)
-            image_out = np.swapaxes(image_out, 0, 1)
-            image_out = Image.fromarray(image_out.astype('uint8')).convert('RGB')
-            image_out.save(image_path, 'png', optimize=True)
+                    t = np.exp(-1 * fog_density * depth)
+                    t = np.expand_dims(t, axis=0)
+                    t = np.concatenate((t, t, t))
+                    image_out = np.add(np.multiply(image, t), np.add(255 * np.multiply(map_A, (1 - t)), noise))
+                    image_out[image_out < 0] = 0
+                    image_out[image_out > 255] = 255
+
+                    image_path = hazy_path + '0' * (5 - len(str(count))) + str(
+                        count) + '_a=' + '%.02f' % fog_A + '_b=' + '%.02f' % fog_density + '.png'
+                    image_out = np.swapaxes(image_out, 0, 2)
+                    image_out = np.swapaxes(image_out, 0, 1)
+                    image_out = Image.fromarray(image_out.astype('uint8')).convert('RGB')
+                    image_out.save(image_path, 'png', optimize=True)
+                count += 1
         end = time.time()
         s = (end - start) / (i + 1) * (length - i - 1)
         print('%d:%02d:%02d' % (s // 3600, s // 60 - s // 3600 * 60, s % 60))
