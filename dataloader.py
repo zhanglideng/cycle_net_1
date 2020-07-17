@@ -40,9 +40,9 @@ class Cycle_DataSet(Dataset):
         self.transform1 = transform1
         self.haze_path, self.gt_path = path
         self.haze_data_list = os.listdir(self.haze_path)
-        self.haze_data_list.sort(key=lambda x: int(x[:4]))
+        self.haze_data_list.sort(key=lambda x: int(x[:5]))
         self.gt_data_list = os.listdir(self.gt_path)
-        self.gt_data_list.sort(key=lambda x: int(x[:4]))
+        self.gt_data_list.sort(key=lambda x: int(x[:5]))
         if is_gth_train:
             self.haze_data_list = self.haze_data_list + self.gt_data_list
         self.length = len(self.haze_data_list)
@@ -52,9 +52,9 @@ class Cycle_DataSet(Dataset):
 
     def __getitem__(self, idx):
         haze_name = self.haze_data_list[idx][:-4]
-        gth_name = haze_name[:4]
+        gth_name = haze_name[:5]
         gt_image = Image.open(self.gt_path + gth_name + '.png')
-        if len(haze_name) == 4:
+        if len(haze_name) == 5:
             haze_image = gt_image
         else:
             haze_image = Image.open(self.haze_path + haze_name + '.png')
