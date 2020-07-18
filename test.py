@@ -58,6 +58,7 @@ excel_save = save_path + '/test_result.xls'
 model_path = './mid_model/cycle_model.pt'
 net = torch.load(model_path)
 net = net.cuda()
+loss_net = test_loss_net().cuda()
 transform = transforms.Compose([transforms.ToTensor()])
 
 test_path_list = [test_hazy_path, test_gth_path]
@@ -81,8 +82,7 @@ for haze_name, haze_image, gt_image in test_data_loader:
         J3 = net(J2, haze_image)
         J4 = net(J3, haze_image)
         J5 = net(J4, haze_image)
-        loss_image = [J1, J2, J3, J4, J5, gt_image]
-        loss = loss_test(loss_image)
+        loss = loss_net(J1, J2, J3, J4, J5, gt_image)
 
         excel_test_line = write_excel_test(sheet=sheet_test, line=excel_test_line, name=haze_name[0], loss=loss)
         f.save(excel_save)

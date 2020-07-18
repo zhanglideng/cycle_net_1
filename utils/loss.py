@@ -305,6 +305,68 @@ class train_loss_net(nn.Module):
         return loss_for_train, loss_for_save
 
 
+class test_loss_net(nn.Module):
+    def __init__(self, channel=3):
+        super(test_loss_net, self).__init__()
+        self.l2 = MSE()
+        self.ssim = MS_SSIM(max_val=1, channel=channel)
+        self.vgg_loss = vgg_loss()
+        self.relu = nn.ReLU(inplace=True)
+
+    def forward(self, j1, j2, j3, j4, j5, gth):
+        l2_1 = self.l2(j1, gth)
+        l2_2 = self.l2(j2, gth)
+        l2_3 = self.l2(j3, gth)
+        l2_4 = self.l2(j4, gth)
+        l2_5 = self.l2(j5, gth)
+
+        ssim_1 = 1 - self.ssim(j1, gth)
+        ssim_2 = 1 - self.ssim(j2, gth)
+        ssim_3 = 1 - self.ssim(j3, gth)
+        ssim_4 = 1 - self.ssim(j4, gth)
+        ssim_5 = 1 - self.ssim(j5, gth)
+
+        vgg_1_1, vgg_1_2, vgg_1_3, vgg_1_4 = self.vgg_loss(j1, gth)
+        vgg_2_1, vgg_2_2, vgg_2_3, vgg_2_4 = self.vgg_loss(j2, gth)
+        vgg_3_1, vgg_3_2, vgg_3_3, vgg_3_4 = self.vgg_loss(j3, gth)
+        vgg_4_1, vgg_4_2, vgg_4_3, vgg_4_4 = self.vgg_loss(j4, gth)
+        vgg_5_1, vgg_5_2, vgg_5_3, vgg_5_4 = self.vgg_loss(j5, gth)
+        # print(vgg_1_1)
+
+        l2_map = [l2_1, l2_2, l2_3, l2_4, l2_5, self.relu(l2_2 - l2_1), self.relu(l2_3 - l2_2), self.relu(l2_4 - l2_3),
+                  self.relu(l2_5 - l2_4)]
+        ssim_map = [ssim_1, ssim_2, ssim_3, ssim_4, ssim_5, self.relu(ssim_2 - ssim_1), self.relu(ssim_3 - ssim_2),
+                    self.relu(ssim_4 - ssim_3), self.relu(ssim_5 - ssim_4)]
+        vgg_map = [vgg_1_1, vgg_1_2, vgg_1_3, vgg_1_4,
+                   vgg_2_1, vgg_2_2, vgg_2_3, vgg_2_4,
+                   vgg_3_1, vgg_3_2, vgg_3_3, vgg_3_4,
+                   vgg_4_1, vgg_4_2, vgg_4_3, vgg_4_4,
+                   vgg_5_1, vgg_5_2, vgg_5_3, vgg_5_4,
+                   self.relu(vgg_2_1 - vgg_1_1), self.relu(vgg_2_2 - vgg_1_2),
+                   self.relu(vgg_2_3 - vgg_1_3), self.relu(vgg_2_4 - vgg_1_4),
+                   self.relu(vgg_3_1 - vgg_2_1), self.relu(vgg_3_2 - vgg_2_2),
+                   self.relu(vgg_3_3 - vgg_2_3), self.relu(vgg_3_4 - vgg_2_4),
+                   self.relu(vgg_4_1 - vgg_3_1), self.relu(vgg_4_2 - vgg_3_2),
+                   self.relu(vgg_4_3 - vgg_3_3), self.relu(vgg_4_4 - vgg_3_4),
+                   self.relu(vgg_5_1 - vgg_4_1), self.relu(vgg_5_2 - vgg_4_2),
+                   self.relu(vgg_5_3 - vgg_4_3), self.relu(vgg_5_4 - vgg_4_4)
+                   ]
+        loss_for_save = [0] * 27
+        for i in range(len(l2_map)):
+            loss_for_save[i] = torch.mean(l2_map[i]).item()
+            # print(loss_for_save)
+
+        for i in range(len(ssim_map)):
+            loss_for_save[i + len(l2_map)] = torch.mean(ssim_map[i]).item()
+            # print(ssim_map[i])
+
+        for i in range(len(vgg_map)):
+            loss_for_save[int(i / 4) + len(l2_map) + len(ssim_map)] = loss_for_save[int(i / 4)] + torch.mean(
+                vgg_map[i]).item()
+            # print(loss_for_save)
+        return loss_for_save
+
+
 '''
 class test_loss_net(nn.Module):
     def __init__(self, channel=3):

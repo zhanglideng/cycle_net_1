@@ -29,6 +29,7 @@ parser.add_argument('-category', help='Set image category (NYU or NTIRE2018?)', 
 parser.add_argument('-data_path', help='Set the data_path', default='/input', type=str)
 parser.add_argument('-pre_model', help='Whether to use a pre-trained model', default=True, type=bool)
 parser.add_argument('-gth_train', help='Whether to add Gth training', default=False, type=bool)
+parser.add_argument('-inter_train', help='Is the training interrupted', default=False, type=bool)
 parser.add_argument('-loss_weight', help='Set the loss weight',
                     default=[5, 20, 80, 10, 10, 5, 20, 80, 10, 10, 5, 20, 80, 10, 10], type=list)
 args = parser.parse_args()
@@ -44,14 +45,18 @@ weight = args.loss_weight  # 损失函数权重
 loss_num = len(weight)  # 损失函数的数量
 data_path = args.data_path  # 数据存放的路径
 Is_pre_model = args.pre_model  # 是否使用预训练模型
+Is_inter_train = args.inter_train  # 是否是被中断的训练
 Is_gth_train = args.gth_train  # 是否使用Gth参与训练
 
-if Is_pre_model:
+if Is_inter_train:
+    print('加载中断后模型')
+    net = torch.load('./mid_model/cycle_model.pt').cuda()
+elif Is_pre_model:
     print('加载预训练模型')
     net = torch.load(data_path + '/pre_model/J_model/best_cycle_model.pt').cuda()
 else:
     print('创建新模型')
-    net = cycle(dropout=0.3).cuda()
+    net = cycle(dropout=dropout).cuda()
 loss_net = train_loss_net().cuda()
 
 total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
