@@ -27,7 +27,7 @@ from PIL import Image
 if os.path.exists('/input'):
     data_path = '/input'
 else:
-    data_path = '/home/ljh/zhanglideng'
+    data_path = '/home/liu/zhanglideng'
 test_hazy_path = data_path + '/data/nyu_cycle/test_hazy/'
 test_gth_path = data_path + '/data/nyu_cycle/test_gth/'
 
@@ -49,13 +49,24 @@ def get_image_for_save(img):
     return img
 
 
-save_path = 'test_result_{}'.format(time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime()))
+def find_pretrain(path_name):
+    file_list = os.listdir('./')
+    length = len(path_name)
+    for i in range(len(file_list)):
+        if file_list[i][:length] == path_name:
+            return file_list[i]
+    return 0
+
+
+file_path = find_pretrain('cycle_result')
+local_time = time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime())
+save_path = './{}/test_result_{}'.format(file_path, local_time)
 if not os.path.exists(save_path):
     os.makedirs(save_path)
 
-excel_save = save_path + '/test_result.xls'
+excel_save = './{}/test_result_{}.xls'.format(file_path, local_time)
 
-model_path = './mid_model/cycle_model.pt'
+model_path = file_path + '/cycle_model.pt'
 net = torch.load(model_path)
 net = net.cuda()
 loss_net = test_loss_net().cuda()
