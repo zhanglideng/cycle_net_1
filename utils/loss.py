@@ -127,6 +127,16 @@ weight_base = 1 * torch.ones(1)
 weight_base = weight_base.cuda()
 
 
+class MAE(nn.Module):
+    def __init__(self):
+        super(MAE, self).__init__()
+
+    def forward(self, x1, x2):
+        x1 = x1 - x2
+        x1 = abs(x1)
+        return x1
+
+
 class MSE(nn.Module):
     def __init__(self):
         super(MSE, self).__init__()
@@ -255,17 +265,20 @@ class vgg_loss(nn.Module):
 
 
 class train_loss_net(nn.Module):
-    def __init__(self, channel=3):
+    def __init__(self, channel=3, pixel_loss='MSE'):
         super(train_loss_net, self).__init__()
-        self.l2 = MSE()
+        if pixel_loss == 'MSE':
+            self.pixel_loss = MSE()
+        else:
+            self.pixel_loss = MAE()
         self.ssim = MS_SSIM(max_val=1, channel=channel)
         self.vgg_loss = vgg_loss()
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, j1, j2, j3, gth, weight):
-        l2_1 = self.l2(j1, gth)
-        l2_2 = self.l2(j2, gth)
-        l2_3 = self.l2(j3, gth)
+        l2_1 = self.pixel_loss(j1, gth)
+        l2_2 = self.pixel_loss(j2, gth)
+        l2_3 = self.pixel_loss(j3, gth)
 
         ssim_1 = 1 - self.ssim(j1, gth)
         ssim_2 = 1 - self.ssim(j2, gth)

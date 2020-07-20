@@ -30,6 +30,7 @@ parser.add_argument('-data_path', help='Set the data_path', default='/input', ty
 parser.add_argument('-pre_model', help='Whether to use a pre-trained model', default=True, type=bool)
 parser.add_argument('-gth_train', help='Whether to add Gth training', default=False, type=bool)
 parser.add_argument('-inter_train', help='Is the training interrupted', default=False, type=bool)
+parser.add_argument('-MAE_or_MSE', help='Use MSE or MAE', default='MSE', type=str)
 parser.add_argument('-loss_weight', help='Set the loss weight',
                     default=[5, 20, 80, 10, 10, 5, 20, 80, 10, 10, 5, 20, 80, 10, 10], type=list)
 args = parser.parse_args()
@@ -46,6 +47,7 @@ loss_num = len(weight)  # 损失函数的数量
 data_path = args.data_path  # 数据存放的路径
 Is_pre_model = args.pre_model  # 是否使用预训练模型
 Is_inter_train = args.inter_train  # 是否是被中断的训练
+MAE_or_MSE = args.MAE_or_MSE  # 使用MSE还是MAE
 Is_gth_train = args.gth_train  # 是否使用Gth参与训练
 
 if Is_inter_train:
@@ -57,7 +59,7 @@ elif Is_pre_model:
 else:
     print('创建新模型')
     net = cycle(dropout=dropout).cuda()
-loss_net = train_loss_net().cuda()
+loss_net = train_loss_net(pixel_loss=MAE_or_MSE).cuda()
 
 total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
 print("Total_params: {}".format(total_params))
@@ -77,17 +79,12 @@ save_path = data_path + '/train_result/cycle_result_' + time.strftime("%Y_%m_%d_
 save_model_name = save_path + 'cycle_model.pt'  # 保存模型的路径
 excel_save = save_path + 'result.xls'  # 保存excel的路径
 mid_save_ed_path = './mid_model/cycle_model.pt'  # 保存的中间模型，用于意外停止后继续训练。
-
 log = 'learning_rate: {}\nbatch_size: {}\nepoch: {}\ndropout: {}\ncategory: {}\n' \
-      'Is_gth_train: {}\nloss_weight: {}\nIs_pre_model: {}\ntotal_params: {}\nsave_file_name: {}'.format(learning_rate,
-                                                                                                         batch_size,
-                                                                                                         epoch, dropout,
-                                                                                                         category,
-                                                                                                         Is_gth_train,
-                                                                                                         weight,
-                                                                                                         Is_pre_model,
-                                                                                                         total_params,
-                                                                                                         save_path)
+      'Is_gth_train: {}\nloss_weight: {}\nIs_pre_model: {}\ntotal_params: {}\nsave_file_name: {}\n' \
+      'MAE_or_MSE: {}\nIs_inter_train: {}'.format(learning_rate, batch_size, epoch, dropout, category,
+                                                  Is_gth_train, weight, Is_pre_model, total_params,
+                                                  save_path, MAE_or_MSE, Is_inter_train)
+
 print('--- Hyper-parameters for training ---')
 print(log)
 if not os.path.exists('./mid_model'):
