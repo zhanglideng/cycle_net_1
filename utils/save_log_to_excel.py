@@ -67,50 +67,28 @@ def write_excel_test(sheet, line, name, loss):
     return line + 1
 
 
-def init_excel(kind):
+def init_train_excel(row):
     workbook = xlwt.Workbook()
-    if kind == 'train':
-        sheet1 = workbook.add_sheet('train', cell_overwrite_ok=True)
-        sheet2 = workbook.add_sheet('val', cell_overwrite_ok=True)
-        sheet3 = workbook.add_sheet('val_every_image', cell_overwrite_ok=True)
-        # 通过excel保存训练结果（训练集验证集loss，学习率，训练时间，总训练时间）
-        row0 = ["epoch", "itr",
-                "J1_l2", "J2_l2", "J3_l2",
-                "J1_ssim", "J2_ssim", "J3_ssim",
-                "J1_vgg", "J2_vgg", "J3_vgg",
-                "loss"]
-        # row0 = ["epoch", "itr", "l2", "ssim", "loss"]
-        row1 = ["epoch",
-                "J1_l2", "J2_l2", "J3_l2",
-                "J1_ssim", "J2_ssim", "J3_ssim",
-                "J1_vgg", "J2_vgg", "J3_vgg",
-                "val_loss", "train_loss"]
-        row2 = ["epoch", "num", "A", "beta",
-                "J1_l2", "J1_ssim", "J1_vgg",
-                "J2_l2", "J2_ssim", "J2_vgg",
-                "J3_l2", "J3_ssim", "J3_vgg"]
-        # row1 = ["epoch", "l2", "ssim", "val_loss", "train_loss"]
-        print('写入train_excel')
-        for i in range(0, len(row0)):
-            sheet1.write(0, i, row0[i], set_style('Times New Roman', 220, True))
-        print('写入val_excel')
-        for i in range(0, len(row1)):
-            sheet2.write(0, i, row1[i], set_style('Times New Roman', 220, True))
-        print('写入val_excel_every_image')
-        for i in range(0, len(row2)):
-            sheet3.write(0, i, row2[i], set_style('Times New Roman', 220, True))
-        return workbook, sheet1, sheet2, sheet3
-    elif kind == 'test':
-        sheet1 = workbook.add_sheet('test', cell_overwrite_ok=True)
-        # 通过excel保存训练结果（训练集验证集loss，学习率，训练时间，总训练时间）
-        row0 = ["num", "A", "beta",
-                "J1_l2", "J2_l2", "J3_l2", "J4_l2", "J5_l2",
-                "J1_ssim", "J2_ssim", "J3_ssim", "J4_ssim", "J5_ssim",
-                "J1_vgg", "J2_vgg", "J3_vgg", "J4_vgg", "J5_vgg",
-                "J1-J2_l2", "J2-J3_l2", "J3-J4_l2", "J4-J5_l2",
-                "J1-J2_ssim", "J2-J3_ssim", "J3-J4_ssim", "J4-J5_ssim",
-                "J1-J2_vgg", "J2-J3_vgg", "J3-J4_vgg", "J4-J5_vgg"]
-        for i in range(0, len(row0)):
-            print('写入test_excel')
-            sheet1.write(0, i, row0[i], set_style('Times New Roman', 220, True))
-        return workbook, sheet1
+    sheet1 = workbook.add_sheet('train', cell_overwrite_ok=True)
+    sheet2 = workbook.add_sheet('val', cell_overwrite_ok=True)
+    print('写入train_excel')
+    for i in range(0, len(row[0])):
+        sheet1.write(0, i, row[0][i], set_style('Times New Roman', 220, True))
+    print('写入val_excel')
+    for i in range(0, len(row[1])):
+        sheet2.write(0, i, row[1][i], set_style('Times New Roman', 220, True))
+    return workbook, sheet1, sheet2
+
+
+def init_test_excel(row):
+    workbook = xlwt.Workbook()
+    sheet1 = workbook.add_sheet('test', cell_overwrite_ok=True)
+    # 通过excel保存训练结果（训练集验证集loss，学习率，训练时间，总训练时间）
+    row0 = ["num", "A", "beta",
+            "J1_l2", "J2_l2", "J3_l2", "J4_l2", "J5_l2",
+            "J1_ssim", "J2_ssim", "J3_ssim", "J4_ssim", "J5_ssim",
+            "J1_vgg", "J2_vgg", "J3_vgg", "J4_vgg", "J5_vgg"]
+    for i in range(0, len(row0)):
+        print('写入test_excel')
+        sheet1.write(0, i, row0[i], set_style('Times New Roman', 220, True))
+    return workbook, sheet1

@@ -3,12 +3,15 @@
     <words>
       <w>conv</w>
       <w>dehaze</w>
+      <w>dehazy</w>
       <w>guidedfilter</w>
       <w>ntire</w>
+      <w>pretrain</w>
       <w>relu</w>
       <w>scharr</w>
       <w>ssim</w>
       <w>stddv</w>
+      <w>zhanglideng</w>
     </words>
   </dictionary>
 </component>

@@ -17,6 +17,22 @@ import xlwt
 import argparse
 from utils.ms_ssim import *
 
+'''        row0 = ["epoch", "itr",
+                "J1_l2", "J2_l2", "J3_l2",
+                "J1_ssim", "J2_ssim", "J3_ssim",
+                "J1_vgg", "J2_vgg", "J3_vgg",
+                "loss"]
+        row1 = ["epoch",
+                "J1_l2", "J2_l2", "J3_l2",
+                "J1_ssim", "J2_ssim", "J3_ssim",
+                "J1_vgg", "J2_vgg", "J3_vgg",
+                "val_loss", "train_loss"]
+        row2 = ["epoch", "num", "A", "beta",
+                "J1_l2", "J1_ssim", "J1_vgg",
+                "J2_l2", "J2_ssim", "J2_vgg",
+                "J3_l2", "J3_ssim", "J3_vgg"]
+'''
+
 # --- Parse hyper-parameters  --- #
 parser = argparse.ArgumentParser(description='Hyper-parameters for CycleDehazeNet')
 parser.add_argument('-learning_rate', help='Set the learning rate', default=5e-4, type=float)
@@ -33,6 +49,11 @@ parser.add_argument('-inter_train', help='Is the training interrupted', default=
 parser.add_argument('-MAE_or_MSE', help='Use MSE or MAE', default='MSE', type=str)
 parser.add_argument('-loss_weight', help='Set the loss weight',
                     default=[5, 20, 80, 10, 10, 5, 20, 80, 10, 10, 5, 20, 80, 10, 10], type=list)
+parser.add_argument('-excel_row', help='The excel row',
+                    default=[["epoch", "itr", "J1_l2", "J2_l2", "J3_l2", "J1_ssim",
+                              "J2_ssim", "J3_ssim", "J1_vgg", "J2_vgg", "J3_vgg", "loss"],
+                             ["epoch", "J1_l2", "J2_l2", "J3_l2", "J1_ssim", "J2_ssim", "J3_ssim",
+                              "J1_vgg", "J2_vgg", "J3_vgg", "val_loss", "train_loss"]], type=list)
 args = parser.parse_args()
 
 learning_rate = args.learning_rate  # 学习率
@@ -49,6 +70,7 @@ Is_pre_model = args.pre_model  # 是否使用预训练模型
 Is_inter_train = args.inter_train  # 是否是被中断的训练
 MAE_or_MSE = args.MAE_or_MSE  # 使用MSE还是MAE
 Is_gth_train = args.gth_train  # 是否使用Gth参与训练
+excel_row = args.excel_row  # excel的列属性名
 
 if Is_inter_train:
     print('加载中断后模型')
@@ -93,7 +115,7 @@ if not os.path.exists(save_path):
     os.makedirs(save_path)
 with open(save_path + 'detail.txt', 'w') as f:
     f.write(log)
-f, sheet_train, sheet_val, sheet_val_every_image = init_excel(kind='train')
+f, sheet_train, sheet_val = init_train_excel(row=excel_row)
 
 transform = transforms.Compose([transforms.ToTensor()])
 train_path_list = [train_hazy_path, train_gth_path]
@@ -131,7 +153,8 @@ for epo in range(epoch):
         J1 = net(haze_image, haze_image)
         J2 = net(J1, haze_image)
         J3 = net(J2, haze_image)
-        loss, temp_loss = loss_net(J1, J2, J3, gt_image, weight)
+        J = [J1, J2, J3]
+        loss, temp_loss = loss_net(J, gt_image, weight)
         # print(temp_loss)
         # loss_image = [J1, J2, J3, gt_image]
         # loss, temp_loss = loss_function(loss_image, weight)
