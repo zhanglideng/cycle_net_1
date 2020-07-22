@@ -54,8 +54,8 @@ parser.add_argument('-excel_row', help='The excel row',
                              "J1_ssim", "J2_ssim", "J3_ssim", "J4_ssim", "J5_ssim",
                              "J1_vgg", "J2_vgg", "J3_vgg", "J4_vgg", "J5_vgg"], type=list)
 
-args = parser.parse_args()
 
+args = parser.parse_args()
 Is_save_image = args.Is_save_image  # 是否保存图像测试结果
 test_round = args.test_round  # 测试循环次数
 data_path = args.data_path  # 数据路径
@@ -63,8 +63,10 @@ batch_size = args.batch_size  # 测试批大小
 gth_test = args.gth_test  # 是否测试无雾图像
 excel_row = args.excel_row  # excel的列属性名
 
+
 test_hazy_path = data_path + '/data/nyu_cycle/test_hazy/'
 test_gth_path = data_path + '/data/nyu_cycle/test_gth/'
+
 
 # 加载训练好的模型
 file_path = find_pretrain('cycle_result')
@@ -73,22 +75,26 @@ net = torch.load(model_path)
 net = net.cuda()
 loss_net = test_loss_net().cuda()
 
+
 # 创建用于保存测试结果的文件夹
 local_time = time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime())
 save_path = './{}/test_result_{}'.format(file_path, local_time)
 if not os.path.exists(save_path):
     os.makedirs(save_path)
 
+
 # 创建用于保存测试指标的表格文件
 excel_test_line = 1
 excel_save = './{}/test_result_{}.xls'.format(file_path, local_time)
 f, sheet_test = init_test_excel(row=excel_row)
+
 
 # 创建图像数据加载器
 transform = transforms.Compose([transforms.ToTensor()])
 test_path_list = [test_hazy_path, test_gth_path]
 test_data = Cycle_DataSet(transform, is_gth_train=gth_test, path=test_path_list, flag='test')
 test_data_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=0)
+
 
 # 开始测试
 print("Start testing\n")

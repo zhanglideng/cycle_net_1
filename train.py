@@ -17,38 +17,23 @@ import xlwt
 import argparse
 from utils.ms_ssim import *
 
-'''        row0 = ["epoch", "itr",
-                "J1_l2", "J2_l2", "J3_l2",
-                "J1_ssim", "J2_ssim", "J3_ssim",
-                "J1_vgg", "J2_vgg", "J3_vgg",
-                "loss"]
-        row1 = ["epoch",
-                "J1_l2", "J2_l2", "J3_l2",
-                "J1_ssim", "J2_ssim", "J3_ssim",
-                "J1_vgg", "J2_vgg", "J3_vgg",
-                "val_loss", "train_loss"]
-        row2 = ["epoch", "num", "A", "beta",
-                "J1_l2", "J1_ssim", "J1_vgg",
-                "J2_l2", "J2_ssim", "J2_vgg",
-                "J3_l2", "J3_ssim", "J3_vgg"]
-'''
 
 # --- Parse hyper-parameters  --- #
 parser = argparse.ArgumentParser(description='Hyper-parameters for CycleDehazeNet')
 parser.add_argument('-learning_rate', help='Set the learning rate', default=5e-4, type=float)
-parser.add_argument('-batch_size', help='Set the training batch size', default=1, type=int)
+parser.add_argument('-batch_size', help='Set the training batch size', default=2, type=int)
 parser.add_argument('-accumulation_steps', help='Set the accumulation steps', default=8, type=int)
 parser.add_argument('-dropout', help='Set the dropout ratio', default=0.3, type=int)
-parser.add_argument('-itr_to_excel', help='Save to excel after every n trainings', default=16, type=int)
+parser.add_argument('-itr_to_excel', help='Save to excel after every n trainings', default=128, type=int)
 parser.add_argument('-epoch', help='Set the epoch', default=50, type=int)
 parser.add_argument('-category', help='Set image category (NYU or NTIRE2018?)', default='NYU', type=str)
-parser.add_argument('-data_path', help='Set the data_path', default='/input', type=str)
+parser.add_argument('-data_path', help='Set the data_path', default='/home/liu/zhanglideng', type=str)
 parser.add_argument('-pre_model', help='Whether to use a pre-trained model', default=True, type=bool)
 parser.add_argument('-gth_train', help='Whether to add Gth training', default=False, type=bool)
 parser.add_argument('-inter_train', help='Is the training interrupted', default=False, type=bool)
 parser.add_argument('-MAE_or_MSE', help='Use MSE or MAE', default='MSE', type=str)
 parser.add_argument('-loss_weight', help='Set the loss weight',
-                    default=[5, 20, 80, 10, 10, 5, 20, 80, 10, 10, 5, 20, 80, 10, 10], type=list)
+                    default=[5, 5, 5, 10, 10, 5, 5, 5, 10, 10, 5, 5, 5, 10, 10], type=list)
 parser.add_argument('-excel_row', help='The excel row',
                     default=[["epoch", "itr", "J1_l2", "J2_l2", "J3_l2", "J1_ssim",
                               "J2_ssim", "J3_ssim", "J1_vgg", "J2_vgg", "J3_vgg", "loss"],
@@ -72,6 +57,8 @@ MAE_or_MSE = args.MAE_or_MSE  # 使用MSE还是MAE
 Is_gth_train = args.gth_train  # 是否使用Gth参与训练
 excel_row = args.excel_row  # excel的列属性名
 
+
+# 加载模型
 if Is_inter_train:
     print('加载中断后模型')
     net = torch.load('./mid_model/cycle_model.pt').cuda()
@@ -83,9 +70,13 @@ else:
     net = cycle(dropout=dropout).cuda()
 loss_net = train_loss_net(pixel_loss=MAE_or_MSE).cuda()
 
+
+# 计算模型参数数量
 total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
 print("Total_params: {}".format(total_params))
 
+
+# 读取数据集目录
 if category == 'NYU':
     train_hazy_path = data_path + '/data/nyu_cycle/train_hazy/'
     val_hazy_path = data_path + '/data/nyu_cycle/val_hazy/'
@@ -107,16 +98,27 @@ log = 'learning_rate: {}\nbatch_size: {}\nepoch: {}\ndropout: {}\ncategory: {}\n
                                                   Is_gth_train, weight, Is_pre_model, total_params,
                                                   save_path, MAE_or_MSE, Is_inter_train)
 
+
 print('--- Hyper-parameters for training ---')
 print(log)
+
+# 创建用于临时保存的文件夹
 if not os.path.exists('./mid_model'):
     os.makedirs('./mid_model')
+
+# 创建本次训练的保存文件夹并记录重要信息
 if not os.path.exists(save_path):
     os.makedirs(save_path)
 with open(save_path + 'detail.txt', 'w') as f:
     f.write(log)
+
+# 创建用于保存训练和验证过程的表格文件
+excel_train_line = 1
+excel_val_line = 1
 f, sheet_train, sheet_val = init_train_excel(row=excel_row)
 
+
+# 创建图像数据加载器
 transform = transforms.Compose([transforms.ToTensor()])
 train_path_list = [train_hazy_path, train_gth_path]
 val_path_list = [val_hazy_path, val_gth_path]
@@ -129,17 +131,15 @@ else:
 train_data_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=0)
 val_data_loader = DataLoader(val_data, batch_size=batch_size, shuffle=True, num_workers=0)
 
+
 # 定义优化器
 optimizer = torch.optim.Adam(net.parameters(), lr=learning_rate, weight_decay=1e-5)
 # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=40, gamma=0.5)
 
-excel_train_line = 1
-excel_val_line = 1
-excel_val_every_image_line = 1
-min_loss = 99999
-start_time = time.time()
 
 # 开始训练
+min_loss = 99999
+start_time = time.time()
 print("\nstart to train!")
 for epo in range(epoch):
     index = 0
