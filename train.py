@@ -182,9 +182,8 @@ for epo in range(epoch):
             J1 = net(haze_image, haze_image)
             J2 = net(J1, haze_image)
             J3 = net(J2, haze_image)
-            loss, temp_loss = loss_net(J1, J2, J3, gt_image, weight)
-            # loss_image = [J1, J2, J3, gt_image]
-            # loss, temp_loss = loss_function(loss_image, weight)
+            J = [J1, J2, J3]
+            loss, temp_loss = loss_net(J, gt_image, weight)
             loss_excel = [loss_excel[i] + temp_loss[i] for i in range(len(loss_excel))]
     train_loss = train_loss / len(train_data_loader)
     loss_excel = [loss_excel[i] / len(val_data_loader) for i in range(len(loss_excel))]
