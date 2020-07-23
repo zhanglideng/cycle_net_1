@@ -106,14 +106,14 @@ for haze_name, haze_image, gt_image in test_data_loader:
         for i in range(batch_size):
             J_temp = [0] * test_round
             for j in range(test_round):
-                J_temp[j] = J[j][i, :, :, :]
+                J_temp[j] = J[j][i, :, :, :].unsqueeze_(0)
             loss = loss_net(J_temp, gt_image)
             excel_test_line = write_excel_test(sheet=sheet_test, line=excel_test_line, name=haze_name[0], loss=loss)
             f.save(excel_save)
 
             # 保存图像测试结果
             if Is_save_image:
-                for k in range(len(J_temp)):
+                for k in range(batch_size):
                     im_output_for_save = get_image_for_save(J_temp[k])
                     filename = '{}_{}.bmp'.format(haze_name[k], k)
                     im_output_for_save.save(os.path.join(save_path, filename))

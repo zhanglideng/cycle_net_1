@@ -32,8 +32,9 @@ parser.add_argument('-pre_model', help='Whether to use a pre-trained model', def
 parser.add_argument('-gth_train', help='Whether to add Gth training', default=False, type=bool)
 parser.add_argument('-inter_train', help='Is the training interrupted', default=False, type=bool)
 parser.add_argument('-MAE_or_MSE', help='Use MSE or MAE', default='MSE', type=str)
+parser.add_argument('-IN_or_BN', help='Use IN or BN', default='IN', type=str)
 parser.add_argument('-loss_weight', help='Set the loss weight',
-                    default=[5, 5, 5, 10, 10, 5, 5, 5, 10, 10, 5, 5, 5, 10, 10], type=list)
+                    default=[1, 1, 1, 2, 2, 1, 1, 1, 2, 2, 1, 1, 1, 2, 2], type=list)
 parser.add_argument('-excel_row', help='The excel row',
                     default=[["epoch", "itr", "J1_l2", "J2_l2", "J3_l2", "J1_ssim",
                               "J2_ssim", "J3_ssim", "J1_vgg", "J2_vgg", "J3_vgg", "loss"],
@@ -56,7 +57,7 @@ Is_inter_train = args.inter_train  # 是否是被中断的训练
 MAE_or_MSE = args.MAE_or_MSE  # 使用MSE还是MAE
 Is_gth_train = args.gth_train  # 是否使用Gth参与训练
 excel_row = args.excel_row  # excel的列属性名
-
+norm_type = args.IN_or_BN  # 使用实例归一化还是批归一化
 
 # 加载模型
 if Is_inter_train:
@@ -67,7 +68,7 @@ elif Is_pre_model:
     net = torch.load(data_path + '/pre_model/J_model/best_cycle_model.pt').cuda()
 else:
     print('创建新模型')
-    net = cycle(drop_rate=drop_rate).cuda()
+    net = cycle(drop_rate=drop_rate, norm_type=norm_type).cuda()
 loss_net = train_loss_net(pixel_loss=MAE_or_MSE).cuda()
 
 

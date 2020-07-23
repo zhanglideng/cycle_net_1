@@ -10,14 +10,14 @@ from torch.autograd import Variable
 class TransitionBlock(nn.Module):
     def __init__(self, in_planes, out_planes, drop_rate):
         super(TransitionBlock, self).__init__()
-        self.bn1 = nn.BatchNorm2d(in_planes)
+        self.in1 = nn.InstanceNorm2d(in_planes)
         self.relu = nn.ReLU(inplace=True)
         self.conv1 = nn.ConvTranspose2d(in_planes, out_planes, kernel_size=1, stride=1,
                                         padding=0, bias=False)
         self.drop_rate = drop_rate
 
     def forward(self, x):
-        out = self.conv1(self.relu(self.bn1(x)))
+        out = self.conv1(self.relu(self.in1(x)))
         if self.drop_rate > 0:
             out = F.dropout(out, p=self.drop_rate, inplace=False, training=self.training)
         return F.upsample_nearest(out, scale_factor=2)
@@ -26,19 +26,19 @@ class TransitionBlock(nn.Module):
 class DenseLayer(nn.Module):
     def __init__(self, in_planes, out_planes, drop_rate):
         super(DenseLayer, self).__init__()
-        self.bn1 = nn.BatchNorm2d(in_planes)
+        self.in1 = nn.InstanceNorm2d(in_planes)
         self.relu = nn.ReLU(inplace=True)
         self.conv1 = nn.Conv2d(in_planes, 32, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn2 = nn.BatchNorm2d(in_planes + 32)
+        self.in2 = nn.InstanceNorm2d(in_planes + 32)
         self.conv2 = nn.Conv2d(in_planes + 32, out_planes - in_planes, kernel_size=3, stride=1, padding=1, bias=False)
         self.drop_rate = drop_rate
 
     def forward(self, x):
-        out = self.conv1(self.relu(self.bn1(x)))
+        out = self.conv1(self.relu(self.in1(x)))
         if self.drop_rate > 0:
             out = F.dropout(out, p=self.drop_rate, inplace=False, training=self.training)
         out = torch.cat([x, out], 1)
-        out = self.conv2(self.relu(self.bn2(out)))
+        out = self.conv2(self.relu(self.in2(out)))
         if self.drop_rate > 0:
             out = F.dropout(out, p=self.drop_rate, inplace=False, training=self.training)
         return torch.cat([x, out], 1)
@@ -168,10 +168,10 @@ class Encoder(nn.Module):
 
 
 class cycle(nn.Module):
-    def __init__(self, drop_rate):
+    def __init__(self, drop_rate, norm_type):
         super(cycle, self).__init__()
-        self.encoder = Encoder(drop_rate=drop_rate)
-        self.decoder = Dense_decoder(out_channel=3, drop_rate=drop_rate)
+        self.encoder = Encoder(drop_rate=drop_rate, norm_type=norm_type)
+        self.decoder = Dense_decoder(out_channel=3, drop_rate=drop_rate, norm_type=norm_type)
 
     def forward(self, x, hazy):
         x = torch.cat([x, hazy], 1)

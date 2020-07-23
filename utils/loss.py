@@ -125,7 +125,7 @@ def loss_test(image):
 
 
 class MAE(nn.Module):
-    def __init__(self,size_average=False):
+    def __init__(self, size_average=False):
         super(MAE, self).__init__()
         self.size_average = size_average
 
@@ -133,13 +133,13 @@ class MAE(nn.Module):
         x1 = x1 - x2
         x1 = abs(x1)
         if self.size_average:
-        	return x1.mean()
+            return x1.mean()
         else:
-        	return x1
+            return x1
 
 
 class MSE(nn.Module):
-    def __init__(self,size_average=False):
+    def __init__(self, size_average=False):
         super(MSE, self).__init__()
         self.size_average = size_average
 
@@ -147,9 +147,9 @@ class MSE(nn.Module):
         x1 = x1 - x2
         x1 = x1.pow(2)
         if self.size_average:
-        	return x1.mean()
+            return x1.mean()
         else:
-        	return x1
+            return x1
 
 
 class VGG16(nn.Module):
@@ -263,6 +263,7 @@ class VGG_LOSS(nn.Module):
         # self.vgg = Vgg16().type(torch.cuda.FloatTensor)
         self.vgg = VGG16()
         self.l2 = MSE(size_average)
+        self.size_average = size_average
 
     def forward(self, hazy, gth):
         output_features = self.vgg(hazy)
@@ -271,7 +272,10 @@ class VGG_LOSS(nn.Module):
         out_2 = self.l2(output_features[1], gth_features[1])
         out_3 = self.l2(output_features[2], gth_features[2])
         out_4 = self.l2(output_features[3], gth_features[3])
-        return [out_1, out_2, out_3, out_4]
+        if self.size_average:
+            return (out_1 + out_2 + out_3 + out_4) / 4
+        else:
+            return [out_1, out_2, out_3, out_4]
 
 
 class train_loss_net(nn.Module):
@@ -290,31 +294,31 @@ class train_loss_net(nn.Module):
         pixel_loss = [0] * (len(dehazy) * 2 - 1)
         for i in range(len(dehazy)):
             pixel_loss[i] = self.pixel_loss(dehazy[i], gth)
-            #print('pixel_loss[{}].shape:{}'.format(i,pixel_loss[i].shape))
+            # print('pixel_loss[{}].shape:{}'.format(i,pixel_loss[i].shape))
         for i in range(len(dehazy) - 1):
             pixel_loss[i + len(dehazy)] = self.relu(pixel_loss[i + 1] - pixel_loss[i])
-            #print('pixel_loss[{}].shape:{}'.format(i + len(dehazy), pixel_loss[i + len(dehazy)].shape))
+            # print('pixel_loss[{}].shape:{}'.format(i + len(dehazy), pixel_loss[i + len(dehazy)].shape))
 
         # 计算ssim损失图
         ssim_loss = [0] * (len(dehazy) * 2 - 1)
         for i in range(len(dehazy)):
             ssim_loss[i] = self.ssim(dehazy[i], gth)
-            #print('ssim_loss[{}].shape:{}'.format(i,ssim_loss[i].shape))
+            # print('ssim_loss[{}].shape:{}'.format(i,ssim_loss[i].shape))
         for i in range(len(dehazy) - 1):
             ssim_loss[i + len(dehazy)] = self.relu(ssim_loss[i + 1] - ssim_loss[i])
-            #print('ssim_loss[{}].shape:{}'.format(i + len(dehazy), ssim_loss[i + len(dehazy)].shape))
+            # print('ssim_loss[{}].shape:{}'.format(i + len(dehazy), ssim_loss[i + len(dehazy)].shape))
 
         # 计算vgg损失图
         vgg_loss = [0] * (len(dehazy) * 2 - 1)
         for i in range(len(dehazy)):
             vgg_loss[i] = self.VGG_LOSS(dehazy[i], gth)
-            #for j in range(len(vgg_loss[0])):
-            #print('vgg_loss[{}][{}].shape:{}'.format(i,j,vgg_loss[i][j].shape))
+            # for j in range(len(vgg_loss[0])):
+            # print('vgg_loss[{}][{}].shape:{}'.format(i,j,vgg_loss[i][j].shape))
         for i in range(len(dehazy) - 1):
             temp = [0] * len(vgg_loss[0])
             for j in range(len(temp)):
                 temp[j] = self.relu(vgg_loss[i + 1][j] - vgg_loss[i][j])
-                #print('vgg_loss[{}][{}].shape:{}'.format(i + len(dehazy),j, temp[j].shape))
+                # print('vgg_loss[{}][{}].shape:{}'.format(i + len(dehazy),j, temp[j].shape))
             vgg_loss[i + len(dehazy)] = temp
 
         # 计算逐像素损失
@@ -331,7 +335,7 @@ class train_loss_net(nn.Module):
         for i in range(length_ssim):
             loss_for_train = loss_for_train + torch.mean(ssim_loss[i]) * weight[i + length_pixel]
             loss_for_save[i + length_pixel] = torch.mean(ssim_loss[i]).item()
-            #print('ssim_loss[{}]={}  weight[{}]={}'.format(i,loss_for_save[i + length_pixel],i + length_pixel,weight[i + length_pixel]))
+            # print('ssim_loss[{}]={}  weight[{}]={}'.format(i,loss_for_save[i + length_pixel],i + length_pixel,weight[i + length_pixel]))
 
         # 计算vgg损失
         length_vgg = len(vgg_loss)
@@ -339,13 +343,15 @@ class train_loss_net(nn.Module):
             for j in range(len(vgg_loss[0])):
                 loss_for_train = loss_for_train + torch.mean(vgg_loss[i][j]) * weight[
                     i + length_pixel + length_ssim] * 0.25
-                loss_for_save[i + length_pixel + length_ssim] = loss_for_save[i + length_pixel + length_ssim] + torch.mean(vgg_loss[i][j]).item()
-                #print('vgg_loss[{}][{}]={}  weight[{}]={}'.format(i,j,loss_for_save[i + length_pixel + length_ssim],i + length_pixel + length_ssim,weight[i + length_pixel + length_ssim]))
+                loss_for_save[i + length_pixel + length_ssim] = loss_for_save[
+                                                                    i + length_pixel + length_ssim] + torch.mean(
+                    vgg_loss[i][j]).item()
+                # print('vgg_loss[{}][{}]={}  weight[{}]={}'.format(i,j,loss_for_save[i + length_pixel + length_ssim],i + length_pixel + length_ssim,weight[i + length_pixel + length_ssim]))
         return loss_for_train, loss_for_save
 
 
 class test_loss_net(nn.Module):
-    def __init__(self, weight,size_average=True, channel=3):
+    def __init__(self, weight, size_average=True, channel=3):
         super(test_loss_net, self).__init__()
         self.pixel_loss = MSE(size_average=size_average)
         self.ssim = SSIM(size_average=size_average, max_val=1, channel=channel)
@@ -359,18 +365,18 @@ class test_loss_net(nn.Module):
         for i in range(len(dehazy)):
             pixel_loss[i] = self.pixel_loss(dehazy[i], gth)
             loss_for_save[i] = pixel_loss[i].item()
-            #print(pixel_loss[i].shape)
+            # print(pixel_loss[i].shape)
 
         # 计算ssim损失
         ssim_loss = [0] * len(dehazy)
         for i in range(len(dehazy)):
             ssim_loss[i] = self.ssim(dehazy[i], gth)
-            loss_for_save[i+len(dehazy)] = pixel_loss[i].item()
+            loss_for_save[i + len(dehazy)] = ssim_loss[i].item()
 
         # 计算vgg损失
         vgg_loss = [0] * len(dehazy)
         for i in range(len(dehazy)):
             vgg_loss[i] = self.VGG_LOSS(dehazy[i], gth)
-            loss_for_save[i+len(dehazy)*2] = pixel_loss[i].item()
-        
+            loss_for_save[i + len(dehazy) * 2] = vgg_loss[i].item()
+
         return loss_for_save
