@@ -21,14 +21,14 @@ from utils.ms_ssim import *
 # --- Parse hyper-parameters  --- #
 parser = argparse.ArgumentParser(description='Hyper-parameters for CycleDehazeNet')
 parser.add_argument('-learning_rate', help='Set the learning rate', default=5e-4, type=float)
-parser.add_argument('-batch_size', help='Set the training batch size', default=2, type=int)
+parser.add_argument('-batch_size', help='Set the training batch size', default=4, type=int)
 parser.add_argument('-accumulation_steps', help='Set the accumulation steps', default=8, type=int)
-parser.add_argument('-dropout', help='Set the dropout ratio', default=0.3, type=int)
+parser.add_argument('-drop_rate', help='Set the dropout ratio', default=0.5, type=int)
 parser.add_argument('-itr_to_excel', help='Save to excel after every n trainings', default=128, type=int)
-parser.add_argument('-epoch', help='Set the epoch', default=50, type=int)
+parser.add_argument('-epoch', help='Set the epoch', default=100, type=int)
 parser.add_argument('-category', help='Set image category (NYU or NTIRE2018?)', default='NYU', type=str)
 parser.add_argument('-data_path', help='Set the data_path', default='/home/liu/zhanglideng', type=str)
-parser.add_argument('-pre_model', help='Whether to use a pre-trained model', default=True, type=bool)
+parser.add_argument('-pre_model', help='Whether to use a pre-trained model', default=False, type=bool)
 parser.add_argument('-gth_train', help='Whether to add Gth training', default=False, type=bool)
 parser.add_argument('-inter_train', help='Is the training interrupted', default=False, type=bool)
 parser.add_argument('-MAE_or_MSE', help='Use MSE or MAE', default='MSE', type=str)
@@ -45,7 +45,7 @@ learning_rate = args.learning_rate  # 学习率
 accumulation_steps = args.accumulation_steps  # 梯度累积
 batch_size = args.batch_size  # 批大小
 epoch = args.epoch  # 轮次
-dropout = args.dropout  # dropout的比例
+drop_rate = args.drop_rate  # dropout的比例
 category = args.category  # NYU或NTIRE训练集
 itr_to_excel = args.itr_to_excel  # 每训练itr次保存到excel中
 weight = args.loss_weight  # 损失函数权重
@@ -67,7 +67,7 @@ elif Is_pre_model:
     net = torch.load(data_path + '/pre_model/J_model/best_cycle_model.pt').cuda()
 else:
     print('创建新模型')
-    net = cycle(dropout=dropout).cuda()
+    net = cycle(drop_rate=drop_rate).cuda()
 loss_net = train_loss_net(pixel_loss=MAE_or_MSE).cuda()
 
 
@@ -92,11 +92,11 @@ save_path = data_path + '/train_result/cycle_result_' + time.strftime("%Y_%m_%d_
 save_model_name = save_path + 'cycle_model.pt'  # 保存模型的路径
 excel_save = save_path + 'result.xls'  # 保存excel的路径
 mid_save_ed_path = './mid_model/cycle_model.pt'  # 保存的中间模型，用于意外停止后继续训练。
-log = 'learning_rate: {}\nbatch_size: {}\nepoch: {}\ndropout: {}\ncategory: {}\n' \
+log = 'learning_rate: {}\nbatch_size: {}\nepoch: {}\ndrop_rate: {}\ncategory: {}\n' \
       'Is_gth_train: {}\nloss_weight: {}\nIs_pre_model: {}\ntotal_params: {}\nsave_file_name: {}\n' \
-      'MAE_or_MSE: {}\nIs_inter_train: {}'.format(learning_rate, batch_size, epoch, dropout, category,
+      'MAE_or_MSE: {}\nIs_inter_train: {}\naccumulation_steps: {}'.format(learning_rate, batch_size, epoch, drop_rate, category,
                                                   Is_gth_train, weight, Is_pre_model, total_params,
-                                                  save_path, MAE_or_MSE, Is_inter_train)
+                                                  save_path, MAE_or_MSE, Is_inter_train, accumulation_steps)
 
 
 print('--- Hyper-parameters for training ---')

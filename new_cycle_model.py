@@ -47,11 +47,11 @@ class DenseLayer(nn.Module):
 class DenseBlock(nn.Module):
     def __init__(self, in_planes, drop_rate):
         super(DenseBlock, self).__init__()
-        self.DenseLayer1 = DenseLayer(in_planes, in_planes + 32 * 1, dropout)
-        self.DenseLayer2 = DenseLayer(in_planes + 32 * 1, in_planes + 32 * 2, dropout)
-        self.DenseLayer3 = DenseLayer(in_planes + 32 * 2, in_planes + 32 * 3, dropout)
-        self.DenseLayer4 = DenseLayer(in_planes + 32 * 3, in_planes + 32 * 4, dropout)
-        self.DenseLayer5 = DenseLayer(in_planes + 32 * 4, in_planes + 32 * 5, dropout)
+        self.DenseLayer1 = DenseLayer(in_planes, in_planes + 32 * 1, drop_rate)
+        self.DenseLayer2 = DenseLayer(in_planes + 32 * 1, in_planes + 32 * 2, drop_rate)
+        self.DenseLayer3 = DenseLayer(in_planes + 32 * 2, in_planes + 32 * 3, drop_rate)
+        self.DenseLayer4 = DenseLayer(in_planes + 32 * 3, in_planes + 32 * 4, drop_rate)
+        self.DenseLayer5 = DenseLayer(in_planes + 32 * 4, in_planes + 32 * 5, drop_rate)
         self.drop_rate = drop_rate
 
     def forward(self, x):
@@ -64,20 +64,20 @@ class DenseBlock(nn.Module):
 
 
 class Dense_decoder(nn.Module):
-    def __init__(self, out_channel, dropout):
+    def __init__(self, out_channel, drop_rate):
         super(Dense_decoder, self).__init__()
 
-        self.dense_block1 = DenseBlock(128 + 384, dropout)
-        self.trans_block1 = TransitionBlock(128 + 384 + 32 * 5, 32 + 128, dropout)
+        self.dense_block1 = DenseBlock(128 + 384, drop_rate)
+        self.trans_block1 = TransitionBlock(128 + 384 + 32 * 5, 32 + 128, drop_rate)
 
-        self.dense_block2 = DenseBlock(256 + 32, dropout)
-        self.trans_block2 = TransitionBlock(256 + 32 + 32 * 5, 64, dropout)
+        self.dense_block2 = DenseBlock(256 + 32, drop_rate)
+        self.trans_block2 = TransitionBlock(256 + 32 + 32 * 5, 64, drop_rate)
 
-        self.dense_block3 = DenseBlock(64, dropout)
-        self.trans_block3 = TransitionBlock(64 + 32 * 5, 32, dropout)
+        self.dense_block3 = DenseBlock(64, drop_rate)
+        self.trans_block3 = TransitionBlock(64 + 32 * 5, 32, drop_rate)
 
-        self.dense_block4 = DenseBlock(32, dropout)
-        self.trans_block4 = TransitionBlock(32 + 32 * 5, 16, dropout)
+        self.dense_block4 = DenseBlock(32, drop_rate)
+        self.trans_block4 = TransitionBlock(32 + 32 * 5, 16, drop_rate)
 
         self.refine1 = nn.Conv2d(22, 20, 3, 1, 1)
         self.tanh = nn.Tanh()
@@ -124,7 +124,7 @@ class Dense_decoder(nn.Module):
 
 
 class Encoder(nn.Module):
-    def __init__(self, dropout):
+    def __init__(self, drop_rate):
         super(Encoder, self).__init__()
         ############# 256-256  ##############
         haze_class = models.densenet201(pretrained=True)
@@ -148,8 +148,8 @@ class Encoder(nn.Module):
 
         # 这里不继续用DenseNet的原因是DenseNet的深层信息是分类信息，无助于去雾
         ############# Block4-up  8-8  ##############
-        self.dense_block4 = DenseBlock(896, dropout)  # 896, 256
-        self.trans_block4 = TransitionBlock(896 + 32 * 5, 256, dropout)  # 1152, 128
+        self.dense_block4 = DenseBlock(896, drop_rate)  # 896, 256
+        self.trans_block4 = TransitionBlock(896 + 32 * 5, 256, drop_rate)  # 1152, 128
 
     def forward(self, x, activation='sig'):
         # 608 X 448
@@ -168,10 +168,10 @@ class Encoder(nn.Module):
 
 
 class cycle(nn.Module):
-    def __init__(self, dropout):
+    def __init__(self, drop_rate):
         super(cycle, self).__init__()
-        self.encoder = Encoder(dropout=dropout)
-        self.decoder = Dense_decoder(out_channel=3, dropout=dropout)
+        self.encoder = Encoder(drop_rate=drop_rate)
+        self.decoder = Dense_decoder(out_channel=3, drop_rate=drop_rate)
 
     def forward(self, x, hazy):
         x = torch.cat([x, hazy], 1)
