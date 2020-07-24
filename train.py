@@ -69,6 +69,7 @@ elif Is_pre_model:
 else:
     print('创建新模型')
     net = cycle(drop_rate=drop_rate, norm_type=norm_type).cuda()
+    # print(net)
 loss_net = train_loss_net(pixel_loss=MAE_or_MSE).cuda()
 
 
