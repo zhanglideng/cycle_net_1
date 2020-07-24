@@ -17,7 +17,6 @@ import xlwt
 import argparse
 from utils.ms_ssim import *
 
-
 # --- Parse hyper-parameters  --- #
 parser = argparse.ArgumentParser(description='Hyper-parameters for CycleDehazeNet')
 parser.add_argument('-learning_rate', help='Set the learning rate', default=5e-4, type=float)
@@ -25,7 +24,7 @@ parser.add_argument('-batch_size', help='Set the training batch size', default=4
 parser.add_argument('-accumulation_steps', help='Set the accumulation steps', default=8, type=int)
 parser.add_argument('-drop_rate', help='Set the dropout ratio', default=0.5, type=int)
 parser.add_argument('-itr_to_excel', help='Save to excel after every n trainings', default=128, type=int)
-parser.add_argument('-epoch', help='Set the epoch', default=100, type=int)
+parser.add_argument('-epoch', help='Set the epoch', default=200, type=int)
 parser.add_argument('-category', help='Set image category (NYU or NTIRE2018?)', default='NYU', type=str)
 parser.add_argument('-data_path', help='Set the data_path', default='/home/liu/zhanglideng', type=str)
 parser.add_argument('-pre_model', help='Whether to use a pre-trained model', default=False, type=bool)
@@ -72,11 +71,9 @@ else:
     # print(net)
 loss_net = train_loss_net(pixel_loss=MAE_or_MSE).cuda()
 
-
 # 计算模型参数数量
 total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
 print("Total_params: {}".format(total_params))
-
 
 # 读取数据集目录
 if category == 'NYU':
@@ -96,10 +93,13 @@ excel_save = save_path + 'result.xls'  # 保存excel的路径
 mid_save_ed_path = './mid_model/cycle_model.pt'  # 保存的中间模型，用于意外停止后继续训练。
 log = 'learning_rate: {}\nbatch_size: {}\nepoch: {}\ndrop_rate: {}\ncategory: {}\n' \
       'Is_gth_train: {}\nloss_weight: {}\nIs_pre_model: {}\ntotal_params: {}\nsave_file_name: {}\n' \
-      'MAE_or_MSE: {}\nIs_inter_train: {}\naccumulation_steps: {}'.format(learning_rate, batch_size, epoch, drop_rate, category,
-                                                  Is_gth_train, weight, Is_pre_model, total_params,
-                                                  save_path, MAE_or_MSE, Is_inter_train, accumulation_steps)
-
+      'MAE_or_MSE: {}\nIs_inter_train: {}\naccumulation_steps: {}\nnorm_type: {}'.format(learning_rate, batch_size,
+                                                                                         epoch, drop_rate, category,
+                                                                                         Is_gth_train, weight,
+                                                                                         Is_pre_model, total_params,
+                                                                                         save_path, MAE_or_MSE,
+                                                                                         Is_inter_train,
+                                                                                         accumulation_steps, norm_type)
 
 print('--- Hyper-parameters for training ---')
 print(log)
@@ -119,7 +119,6 @@ excel_train_line = 1
 excel_val_line = 1
 f, sheet_train, sheet_val = init_train_excel(row=excel_row)
 
-
 # 创建图像数据加载器
 transform = transforms.Compose([transforms.ToTensor()])
 train_path_list = [train_hazy_path, train_gth_path]
@@ -132,7 +131,6 @@ else:
     val_data = Ntire_DataSet(transform, Is_gth_train, val_path_list)
 train_data_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=0)
 val_data_loader = DataLoader(val_data, batch_size=batch_size, shuffle=True, num_workers=0)
-
 
 # 定义优化器
 optimizer = torch.optim.Adam(net.parameters(), lr=learning_rate, weight_decay=1e-5)
