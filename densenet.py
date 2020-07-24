@@ -19,7 +19,7 @@ import torch.nn as nn
 # to reduce the number of input feature-maps, and thus to
 # improve computational efficiency."""
 class Bottleneck(nn.Module):
-    def __init__(self, in_channels, growth_rate):
+    def __init__(self, in_channels, growth_rate, dropout):
         super().__init__()
         # """In  our experiments, we let each 1×1 convolution
         # produce 4k feature-maps."""
@@ -37,9 +37,12 @@ class Bottleneck(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(inner_channel, growth_rate, kernel_size=3, padding=1, bias=False)
         )
+        self.dropout = dropout
 
     def forward(self, x):
-        return torch.cat([x, self.bottle_neck(x)], 1)
+        if self.drop_rate > 0:
+            out = F.dropout(self.bottle_neck(x), p=self.drop_rate, training=self.training)
+        return torch.cat([x, out], 1)
 
 
 # """We refer to layers between blocks as transition
@@ -65,7 +68,7 @@ class Transition(nn.Module):
 # B stands for bottleneck layer(BN-RELU-CONV(1x1)-BN-RELU-CONV(3x3))
 # C stands for compression factor(0<=theta<=1)
 class DenseNet(nn.Module):
-    def __init__(self, block=Bottleneck, nblocks=[6, 12, 48], growth_rate=32, reduction=0.5, num_class=100):
+    def __init__(self, dropout, block=Bottleneck, nblocks=[6, 12, 48], growth_rate=32, reduction=0.5, ):
         super().__init__()
         self.growth_rate = growth_rate
 
@@ -78,31 +81,54 @@ class DenseNet(nn.Module):
         # side of the inputs is zero-padded by one pixel to keep
         # the feature-map size fixed.
         self.conv1 = nn.Conv2d(6, inner_channels, kernel_size=3, stride=2, padding=1, bias=False)
+        self.in0 = nn.InstanceNorm2d(64)
+        self.relu = nn.ReLU(inplace=True)
+        self.pool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
-        self.features = nn.Sequential()
+        self.feature1 = nn.Sequential()
+        self.feature2 = nn.Sequential()
+        self.feature3 = nn.Sequential()
 
-        for index in range(len(nblocks)):
-            # self.features.add_module("dense_block_layer_{}".format(index), self._make_dense_layers(block, inner_channels, nblocks[index]))
-            self.features.add_module("dense_block{}".format(index),
-                                     self._make_dense_layers(block, inner_channels, nblocks[index]))
-            inner_channels += growth_rate * nblocks[index]
+        # self.feature1.add_module("dense_block_layer_{}".format(0), self._make_dense_layers(block, inner_channels, nblocks[0]))
+        self.feature1.add_module("dense_block{}".format(0),
+                                 self._make_dense_layers(block, inner_channels, nblocks[0], dropout))
+        inner_channels += growth_rate * nblocks[0]
+        out_channels = int(reduction * inner_channels)  # int() will automatic floor the value
+        self.feature1.add_module("transition_layer{}".format(0), Transition(inner_channels, out_channels))
+        inner_channels = out_channels
 
-            # """If a dense block contains m feature-maps, we let the
-            # following transition layer generate θm output feature-
-            # maps, where 0 < θ ≤ 1 is referred to as the compression
-            # fac-tor.
-            out_channels = int(reduction * inner_channels)  # int() will automatic floor the value
-            self.features.add_module("transition_layer{}".format(index), Transition(inner_channels, out_channels))
-            inner_channels = out_channels
+        self.feature2.add_module("dense_block{}".format(1),
+                                 self._make_dense_layers(block, inner_channels, nblocks[1], dropout))
+        inner_channels += growth_rate * nblocks[1]
+        out_channels = int(reduction * inner_channels)  # int() will automatic floor the value
+        self.feature2.add_module("transition_layer{}".format(1), Transition(inner_channels, out_channels))
+        inner_channels = out_channels
+
+        self.feature3.add_module("dense_block{}".format(2),
+                                 self._make_dense_layers(block, inner_channels, nblocks[2], dropout))
+        inner_channels += growth_rate * nblocks[2]
+        out_channels = int(reduction * inner_channels)  # int() will automatic floor the value
+        self.feature3.add_module("transition_layer{}".format(2), Transition(inner_channels, out_channels))
 
     def forward(self, x):
-        output = self.conv1(x)
-        output = self.features(output)
-        return output
 
-    def _make_dense_layers(self, block, in_channels, nblocks):
+        x0 = self.pool(self.relu(self.in0(self.conv0(x))))
+        x1 = self.trans_block1(self.dense_block1(x0))
+        x2 = self.trans_block2(self.dense_block2(x1))
+        x3 = self.trans_block3(self.dense_block3(x2))
+        x4 = self.trans_block4(self.dense_block4(x3))
+        return x1, x2, x4
+
+        x0 = self.pool(self.relu(self.in0(self.conv0(x))))
+        x1 = self.feature1(output)
+        x2 = self.feature2(output)
+        x3 = self.feature3(output)
+        return x1, x2, x4
+
+
+    def _make_dense_layers(self, block, in_channels, nblocks, dropout):
         dense_block = nn.Sequential()
         for index in range(nblocks):
-            dense_block.add_module('bottle_neck_layer_{}'.format(index), block(in_channels, self.growth_rate))
+            dense_block.add_module('bottle_neck_layer_{}'.format(index), block(in_channels, self.growth_rate, dropout=dropout))
             in_channels += self.growth_rate
         return dense_block
