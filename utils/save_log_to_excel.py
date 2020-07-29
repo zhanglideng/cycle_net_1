@@ -52,13 +52,14 @@ def write_excel_every_val(sheet, line, epoch, name, loss):
 
 def write_excel_test(sheet, line, name, loss):
     # 0_a=0.86_b=1.01
-    num = int(name[:4])
+    # num = int(name[:4])
+    num = int(name.split('_')[0])
     if len(name) == 4:
         air_light = 0.0
         beta = 0.0
     else:
-        air_light = float(name[-11:-7])
-        beta = float(name[-4:])
+        air_light = float(name.split('_')[1].split('=')[1])
+        beta = float(name.split('_')[2].split('=')[1])
     sheet.write(line, 0, num)
     sheet.write(line, 1, air_light)
     sheet.write(line, 2, beta)

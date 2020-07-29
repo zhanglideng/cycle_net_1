@@ -51,8 +51,10 @@ class Cycle_DataSet(Dataset):
         return self.length
 
     def __getitem__(self, idx):
-        haze_name = self.haze_data_list[idx][:-4]
-        gth_name = haze_name[:5]
+        haze_name = self.haze_data_list[idx].split('.')[0]
+        # haze_name = self.haze_data_list[idx][:-4]
+        gth_name = haze_name.split('_')[0]
+        # gth_name = haze_name[:5]
         gt_image = Image.open(self.gt_path + gth_name + '.png')
         if len(haze_name) == 5:
             haze_image = gt_image
