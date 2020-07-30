@@ -20,9 +20,9 @@ from utils.ms_ssim import *
 # --- Parse hyper-parameters  --- #
 parser = argparse.ArgumentParser(description='Hyper-parameters for CycleDehazeNet')
 parser.add_argument('-learning_rate', help='Set the learning rate', default=5e-4, type=float)
-parser.add_argument('-batch_size', help='Set the training batch size', default=4, type=int)
-parser.add_argument('-accumulation_steps', help='Set the accumulation steps', default=8, type=int)
-parser.add_argument('-drop_rate', help='Set the dropout ratio', default=0.5, type=int)
+parser.add_argument('-batch_size', help='Set the training batch size', default=2, type=int)
+parser.add_argument('-accumulation_steps', help='Set the accumulation steps', default=16, type=int)
+parser.add_argument('-drop_rate', help='Set the dropout ratio', default=0.4, type=int)
 parser.add_argument('-itr_to_excel', help='Save to excel after every n trainings', default=128, type=int)
 parser.add_argument('-epoch', help='Set the epoch', default=200, type=int)
 parser.add_argument('-category', help='Set image category (NYU or NTIRE2018?)', default='NYU', type=str)
@@ -30,7 +30,7 @@ parser.add_argument('-data_path', help='Set the data_path', default='/home/liu/z
 parser.add_argument('-pre_model', help='Whether to use a pre-trained model', default=False, type=bool)
 parser.add_argument('-gth_train', help='Whether to add Gth training', default=False, type=bool)
 parser.add_argument('-inter_train', help='Is the training interrupted', default=False, type=bool)
-parser.add_argument('-MAE_or_MSE', help='Use MSE or MAE', default='MSE', type=str)
+parser.add_argument('-MAE_or_MSE', help='Use MSE or MAE', default='MAE', type=str)
 parser.add_argument('-IN_or_BN', help='Use IN or BN', default='IN', type=str)
 parser.add_argument('-loss_weight', help='Set the loss weight',
                     default=[1, 1, 1, 2, 2, 1, 1, 1, 2, 2, 1, 1, 1, 2, 2], type=list)

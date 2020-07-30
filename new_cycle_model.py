@@ -120,11 +120,11 @@ class Dense_decoder(nn.Module):
 
     def forward(self, x, x1, x2, x4, activation=None):
         x42 = torch.cat([x4, x2], 1)
-        x5 = self.trans_block1(self.dense_block1(x42))
+        x5 = self.dense_decoder0(x42)
         x52 = torch.cat([x5, x1], 1)
-        x6 = self.trans_block2(self.dense_block2(x52))
-        x7 = self.trans_block3(self.dense_block3(x6))
-        x8 = self.trans_block4(self.dense_block4(x7))
+        x6 = self.dense_decoder1(x52)
+        x7 = self.dense_decoder2(x6)
+        x8 = self.dense_decoder3(x7)
         x8 = torch.cat([x8, x], 1)
         x9 = self.relu(self.refine1(x8))
         shape_out = x9.data.size()
