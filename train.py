@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser(description='Hyper-parameters for CycleDehazeNe
 parser.add_argument('-learning_rate', help='Set the learning rate', default=5e-4, type=float)
 parser.add_argument('-batch_size', help='Set the training batch size', default=2, type=int)
 parser.add_argument('-accumulation_steps', help='Set the accumulation steps', default=16, type=int)
-parser.add_argument('-drop_rate', help='Set the dropout ratio', default=0.4, type=int)
+parser.add_argument('-drop_rate', help='Set the dropout ratio', default=0.3, type=int)
 parser.add_argument('-itr_to_excel', help='Save to excel after every n trainings', default=128, type=int)
 parser.add_argument('-epoch', help='Set the epoch', default=200, type=int)
 parser.add_argument('-category', help='Set image category (NYU or NTIRE2018?)', default='NYU', type=str)
@@ -32,8 +32,9 @@ parser.add_argument('-gth_train', help='Whether to add Gth training', default=Fa
 parser.add_argument('-inter_train', help='Is the training interrupted', default=False, type=bool)
 parser.add_argument('-MAE_or_MSE', help='Use MSE or MAE', default='MAE', type=str)
 parser.add_argument('-IN_or_BN', help='Use IN or BN', default='IN', type=str)
+parser.add_argument('-itr_drop_loss_type', help='Iterative drop loss type', default=0.5, type=str)
 parser.add_argument('-loss_weight', help='Set the loss weight',
-                    default=[1, 1, 1, 2, 2, 1, 1, 1, 2, 2, 1, 1, 1, 2, 2], type=list)
+                    default=[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], type=list)
 parser.add_argument('-excel_row', help='The excel row',
                     default=[["epoch", "itr", "J1_l2", "J2_l2", "J3_l2", "J1_ssim",
                               "J2_ssim", "J3_ssim", "J1_vgg", "J2_vgg", "J3_vgg", "loss"],
@@ -57,6 +58,7 @@ MAE_or_MSE = args.MAE_or_MSE  # 使用MSE还是MAE
 Is_gth_train = args.gth_train  # 是否使用Gth参与训练
 excel_row = args.excel_row  # excel的列属性名
 norm_type = args.IN_or_BN  # 使用实例归一化还是批归一化
+itr_drop_loss_type = args.itr_drop_loss_type  # 迭代下降损失的种类，为X^2、X^1、X^1/2之间的对比
 
 # 加载模型
 if Is_inter_train:
@@ -69,7 +71,7 @@ else:
     print('创建新模型')
     net = cycle(drop_rate=drop_rate, norm_type=norm_type).cuda()
     # print(net)
-loss_net = train_loss_net(pixel_loss=MAE_or_MSE).cuda()
+loss_net = train_loss_net(pixel_loss=MAE_or_MSE, itr_drop_loss_type=itr_drop_loss_type).cuda()
 
 # 计算模型参数数量
 total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
@@ -93,13 +95,13 @@ excel_save = save_path + 'result.xls'  # 保存excel的路径
 mid_save_ed_path = './mid_model/cycle_model.pt'  # 保存的中间模型，用于意外停止后继续训练。
 log = 'learning_rate: {}\nbatch_size: {}\nepoch: {}\ndrop_rate: {}\ncategory: {}\n' \
       'Is_gth_train: {}\nloss_weight: {}\nIs_pre_model: {}\ntotal_params: {}\nsave_file_name: {}\n' \
-      'MAE_or_MSE: {}\nIs_inter_train: {}\naccumulation_steps: {}\nnorm_type: {}'.format(learning_rate, batch_size,
+      'MAE_or_MSE: {}\nIs_inter_train: {}\naccumulation_steps: {}\nnorm_type: {}\nitr_drop_loss_type: {}'.format(learning_rate, batch_size,
                                                                                          epoch, drop_rate, category,
                                                                                          Is_gth_train, weight,
                                                                                          Is_pre_model, total_params,
                                                                                          save_path, MAE_or_MSE,
                                                                                          Is_inter_train,
-                                                                                         accumulation_steps, norm_type)
+                                                                                         accumulation_steps, norm_type, itr_drop_loss_type)
 
 print('--- Hyper-parameters for training ---')
 print(log)

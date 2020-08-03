@@ -21,3 +21,16 @@ def print_time(start, progress, epoch, total, n_epoch):
     m, s = divmod(etr_time, 60)
     h, m = divmod(m, 60)
     print("Estimated time remaining: %d:%02d:%02d\n" % (h, m, s))
+
+
+def print_test_time(start, count, total):
+    now = time.time()
+    epoch_time = now - start
+    etr_time = (now - start) / count * (total - count)
+
+    m, s = divmod(epoch_time, 60)
+    h, m = divmod(m, 60)
+    print("spend time: %d:%02d:%02d" % (h, m, s))
+    m, s = divmod(etr_time, 60)
+    h, m = divmod(m, 60)
+    print("Estimated time remaining: %d:%02d:%02d\n" % (h, m, s))

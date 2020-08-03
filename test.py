@@ -15,6 +15,7 @@ from cycle_model import *
 import torch
 from utils.loss import *
 from utils.save_log_to_excel import *
+from utils.print_time import *
 from PIL import Image
 
 
@@ -48,7 +49,7 @@ parser.add_argument('-Is_save_image', help='Whether to save the image', default=
 parser.add_argument('-test_round', help='How many rounds of testing?', default=5, type=int)
 parser.add_argument('-data_path', help='The data path', default='/home/liu/zhanglideng', type=str)
 parser.add_argument('-gth_test', help='Whether to add Gth testing', default=False, type=bool)
-parser.add_argument('-batch_size', help='The batch size', default=2, type=int)
+parser.add_argument('-batch_size', help='The batch size', default=32, type=int)
 parser.add_argument('-weight', help='The loss weight', default=[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], type=list)
 parser.add_argument('-excel_row', help='The excel row',
                     default=["num", "A", "beta", "J1_l2", "J2_l2", "J3_l2", "J4_l2", "J5_l2",
@@ -89,10 +90,12 @@ f, sheet_test = init_test_excel(row=excel_row)
 transform = transforms.Compose([transforms.ToTensor()])
 test_path_list = [test_hazy_path, test_gth_path]
 test_data = Cycle_DataSet(transform, is_gth_train=gth_test, path=test_path_list, flag='test')
-test_data_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=0)
+test_data_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=128)
 
 # 开始测试
 print("Start testing\n")
+start_time = time.time()
+count = 1
 J = [0] * test_round
 for haze_name, haze_image, gt_image in test_data_loader:
     print('name:{}'.format(haze_name))
@@ -103,18 +106,21 @@ for haze_name, haze_image, gt_image in test_data_loader:
         J[0] = net(haze_image, haze_image)
         for i in range(test_round - 1):
             J[i + 1] = net(J[i], haze_image)
-        for i in range(batch_size):
+        for i in range(J[0].shape[0]):
             J_temp = [0] * test_round
             for j in range(test_round):
                 J_temp[j] = J[j][i, :, :, :].unsqueeze_(0)
-            loss = loss_net(J_temp, gt_image)
+                gt_temp = gt_image[i, :, :, :].unsqueeze_(0)
+            loss = loss_net(J_temp, gt_temp)
             excel_test_line = write_excel_test(sheet=sheet_test, line=excel_test_line, name=haze_name[0], loss=loss)
             f.save(excel_save)
 
             # 保存图像测试结果
             if Is_save_image:
-                for k in range(batch_size):
+                for k in range(test_round):
                     im_output_for_save = get_image_for_save(J_temp[k])
-                    filename = '{}_{}.bmp'.format(haze_name[k], k)
+                    filename = '{}_{}.bmp'.format(haze_name[i], k)
                     im_output_for_save.save(os.path.join(save_path, filename))
+        print_test_time(start_time, count, len(test_data_loader))
+        count += 1
 print("Finished!")

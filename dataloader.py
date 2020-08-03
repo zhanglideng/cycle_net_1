@@ -35,7 +35,7 @@ def data_aug(img1, img2):
 
 
 class Cycle_DataSet(Dataset):
-    def __init__(self, transform1, is_gth_train, path=None, flag='train', ):
+    def __init__(self, transform1, is_gth_train, path=None, flag='train'):
         self.flag = flag
         self.transform1 = transform1
         self.haze_path, self.gt_path = path

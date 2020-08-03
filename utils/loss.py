@@ -279,7 +279,7 @@ class VGG_LOSS(nn.Module):
 
 
 class train_loss_net(nn.Module):
-    def __init__(self, channel=3, pixel_loss='MSE'):
+    def __init__(self, channel=3, pixel_loss='MSE', itr_drop_loss_type=1):
         super(train_loss_net, self).__init__()
         if pixel_loss == 'MSE':
             self.pixel_loss = MSE()
@@ -288,6 +288,7 @@ class train_loss_net(nn.Module):
         self.ssim = SSIM(size_average=False, max_val=1, channel=channel)
         self.VGG_LOSS = VGG_LOSS()
         self.relu = nn.ReLU(inplace=True)
+        self.itr_drop_loss_type=itr_drop_loss_type
 
     def forward(self, dehazy, gth, weight):
         # 计算逐像素损失图
@@ -296,7 +297,7 @@ class train_loss_net(nn.Module):
             pixel_loss[i] = self.pixel_loss(dehazy[i], gth)
             # print('pixel_loss[{}].shape:{}'.format(i,pixel_loss[i].shape))
         for i in range(len(dehazy) - 1):
-            pixel_loss[i + len(dehazy)] = self.relu(pixel_loss[i + 1] - pixel_loss[i])
+            pixel_loss[i + len(dehazy)] = self.relu(pixel_loss[i + 1] - pixel_loss[i]).pow(self.itr_drop_loss_type)
             # print('pixel_loss[{}].shape:{}'.format(i + len(dehazy), pixel_loss[i + len(dehazy)].shape))
 
         # 计算ssim损失图
@@ -305,7 +306,7 @@ class train_loss_net(nn.Module):
             ssim_loss[i] = self.ssim(dehazy[i], gth)
             # print('ssim_loss[{}].shape:{}'.format(i,ssim_loss[i].shape))
         for i in range(len(dehazy) - 1):
-            ssim_loss[i + len(dehazy)] = self.relu(ssim_loss[i + 1] - ssim_loss[i])
+            ssim_loss[i + len(dehazy)] = self.relu(ssim_loss[i + 1] - ssim_loss[i]).pow(self.itr_drop_loss_type)
             # print('ssim_loss[{}].shape:{}'.format(i + len(dehazy), ssim_loss[i + len(dehazy)].shape))
 
         # 计算vgg损失图
@@ -317,7 +318,7 @@ class train_loss_net(nn.Module):
         for i in range(len(dehazy) - 1):
             temp = [0] * len(vgg_loss[0])
             for j in range(len(temp)):
-                temp[j] = self.relu(vgg_loss[i + 1][j] - vgg_loss[i][j])
+                temp[j] = self.relu(vgg_loss[i + 1][j] - vgg_loss[i][j]).pow(self.itr_drop_loss_type)
                 # print('vgg_loss[{}][{}].shape:{}'.format(i + len(dehazy),j, temp[j].shape))
             vgg_loss[i + len(dehazy)] = temp
 
