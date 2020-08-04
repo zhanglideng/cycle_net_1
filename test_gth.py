@@ -1,20 +1,10 @@
-import sys
-import argparse
-import time
-import glob
-from torch.autograd import Variable
-import torch
-import torch.nn as nn
 import os
 from torchvision import transforms
 from dataloader import Cycle_DataSet
-from torch.utils.data import Dataset, DataLoader
-import numpy as np
-import cv2
-from cycle_model import *
+from torch.utils.data import DataLoader
 import torch
-from utils.loss import *
-from utils.save_log_to_excel import *
+from loss import *
+from utils import *
 from PIL import Image
 
 """

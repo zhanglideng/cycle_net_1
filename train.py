@@ -1,21 +1,15 @@
 # -*- coding: utf-8 -*-
 # git clone https://github.com/zhanglideng/cycle_net_1.git
 
-import sys
-import os
 import torch
 from torchvision import transforms
 from torch.utils.data import DataLoader
-import numpy as np
-from utils.loss import *
-from utils.print_time import *
-from utils.save_log_to_excel import *
+from loss import *
+from utils import *
 from dataloader import *
-from new_cycle_model import *
+from cycle_model import *
 import time
-import xlwt
 import argparse
-from utils.ms_ssim import *
 
 # --- Parse hyper-parameters  --- #
 parser = argparse.ArgumentParser(description='Hyper-parameters for CycleDehazeNet')
