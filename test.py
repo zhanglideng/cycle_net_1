@@ -8,31 +8,6 @@ from loss import *
 from utils import *
 from PIL import Image
 
-
-# 转换需要保存的图像
-def get_image_for_save(img):
-    img = img.cpu()
-    img = img.numpy()
-    img = np.squeeze(img)
-    img = img * 255
-    img[img < 0] = 0
-    img[img > 255] = 255
-    img = np.rollaxis(img, 0, 3)
-    img = img.astype('uint8')
-    img = Image.fromarray(img).convert('RGB')
-    return img
-
-
-# 查找训练好的模型文件
-def find_pretrain(path_name):
-    file_list = os.listdir('./')
-    length = len(path_name)
-    for i in range(len(file_list)):
-        if file_list[i][:length] == path_name:
-            return file_list[i]
-    return 0
-
-
 # --- Parse hyper-parameters  --- #
 parser = argparse.ArgumentParser(description='Hyper-parameters for CycleDehazeNet')
 parser.add_argument('-Is_save_image', help='Whether to save the image', default=True, type=bool)
@@ -57,6 +32,8 @@ weight = args.weight  # 损失函数的权重
 
 test_hazy_path = data_path + '/data/nyu_cycle/test_hazy/'
 test_gth_path = data_path + '/data/nyu_cycle/test_gth/'
+val_hazy_path = data_path + '/data/nyu_cycle/val_hazy/'
+val_gth_path = data_path + '/data/nyu_cycle/val_gth/'
 
 # 加载训练好的模型
 file_path = find_pretrain('cycle_result')
@@ -79,8 +56,37 @@ f, sheet_test = init_test_excel(row=excel_row)
 # 创建图像数据加载器
 transform = transforms.Compose([transforms.ToTensor()])
 test_path_list = [test_hazy_path, test_gth_path]
+val_path_list = [val_hazy_path, val_gth_path]
 test_data = Cycle_DataSet(transform, is_gth_train=gth_test, path=test_path_list, flag='test')
+val_data = Cycle_DataSet(transform, is_gth_train=gth_test, path=test_path_list, flag='val')
 test_data_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=128)
+val_data_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False, num_workers=128)
+
+# 计算最佳的迭代差距常量
+temp_J = [0] * 999
+max_gap = 0
+image_gap = MAE(size_average=True)
+for haze_name, haze_image, gt_image in val_data_loader:
+    net.eval()
+    with torch.no_grad():
+        haze_image = haze_image.cuda()
+        gt_image = gt_image.cuda()
+        temp_J[0] = net(haze_image, haze_image)
+        min_loss = loss_net(temp_J[0], gt_image)
+        i = 0
+        while 1:
+            temp_J[i + 1] = net(temp_J[i], haze_image)
+            loss = loss_net(temp_J[i + 1], gt_image)
+            i += 1
+            if min_loss > loss:
+                min_loss = loss
+            else:
+                break
+        temp_J[i + 1] = net(temp_J[i], haze_image)
+        gap = image_gap(temp_J[i + 1], temp_J[i])
+        if max_gap < gap:
+            max_gap = gap
+print(max_gap)
 
 # 开始测试
 print("Start testing\n")

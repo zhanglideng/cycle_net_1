@@ -2,6 +2,30 @@ import xlwt
 import time
 
 
+# 转换需要保存的图像
+def get_image_for_save(img):
+    img = img.cpu()
+    img = img.numpy()
+    img = np.squeeze(img)
+    img = img * 255
+    img[img < 0] = 0
+    img[img > 255] = 255
+    img = np.rollaxis(img, 0, 3)
+    img = img.astype('uint8')
+    img = Image.fromarray(img).convert('RGB')
+    return img
+
+
+# 查找训练好的模型文件
+def find_pretrain(path_name):
+    file_list = os.listdir('./')
+    length = len(path_name)
+    for i in range(len(file_list)):
+        if file_list[i][:length] == path_name:
+            return file_list[i]
+    return 0
+
+
 def set_style(name, height, bold=False):
     style = xlwt.XFStyle()
     font = xlwt.Font()
