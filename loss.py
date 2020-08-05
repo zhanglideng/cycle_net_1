@@ -204,24 +204,24 @@ class VGG16(nn.Module):
 '''
 
 
+def gaussian(window_size, sigma):
+    gauss = torch.Tensor([exp(-(x - window_size // 2) ** 2 / float(2 * sigma ** 2)) for x in range(window_size)])
+    return gauss / gauss.sum()
+
+
+def create_window(window_size, sigma, channel):
+    _1D_window = gaussian(window_size, sigma).unsqueeze(1)
+    _2D_window = _1D_window.mm(_1D_window.t()).float().unsqueeze(0).unsqueeze(0)
+    window = Variable(_2D_window.expand(channel, 1, window_size, window_size).contiguous())
+    return window
+
+
 class SSIM(nn.Module):
     def __init__(self, size_average=False, max_val=255, channel=3):
         super(SSIM, self).__init__()
         self.size_average = size_average
         self.channel = channel
         self.max_val = max_val
-
-    @staticmethod
-    def gaussian(window_size, sigma):
-        gauss = torch.Tensor([exp(-(x - window_size // 2) ** 2 / float(2 * sigma ** 2)) for x in range(window_size)])
-        return gauss / gauss.sum()
-
-    @staticmethod
-    def create_window(window_size, sigma, channel):
-        _1D_window = gaussian(window_size, sigma).unsqueeze(1)
-        _2D_window = _1D_window.mm(_1D_window.t()).float().unsqueeze(0).unsqueeze(0)
-        window = Variable(_2D_window.expand(channel, 1, window_size, window_size).contiguous())
-        return window
 
     def ssim(self, img1, img2):
         size_average = self.size_average
@@ -286,7 +286,7 @@ class train_loss_net(nn.Module):
         self.ssim = SSIM(size_average=False, max_val=1, channel=channel)
         self.VGG_LOSS = VGG_LOSS()
         self.relu = nn.ReLU(inplace=True)
-        self.itr_drop_loss_type=itr_drop_loss_type
+        self.itr_drop_loss_type = itr_drop_loss_type
 
     def forward(self, dehazy, gth, weight):
         # 计算逐像素损失图
@@ -379,3 +379,16 @@ class test_loss_net(nn.Module):
             loss_for_save[i + len(dehazy) * 2] = vgg_loss[i].item()
 
         return loss_for_save
+
+
+class gap_compute_net(nn.Module):
+    def __init__(self, weight, size_average=True, channel=3):
+        super(gap_compute_net, self).__init__()
+        self.pixel_loss = MAE(size_average=size_average)
+        self.ssim = SSIM(size_average=size_average, max_val=1, channel=channel)
+        self.VGG_LOSS = VGG_LOSS(size_average=size_average)
+        self.weight = weight
+
+    def forward(self, dehazy, gth):
+        sum_loss = self.pixel_loss(dehazy, gth) + self.ssim(dehazy, gth) + self.VGG_LOSS(dehazy, gth)
+        return sum_loss.item()

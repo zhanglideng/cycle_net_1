@@ -1,5 +1,8 @@
 import xlwt
 import time
+import os
+import numpy as np
+from PIL import Image
 
 
 # 转换需要保存的图像
