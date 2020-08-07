@@ -349,10 +349,10 @@ class train_loss_net(nn.Module):
         return loss_for_train, loss_for_save
 
 
-class test_loss_net(nn.Module):
+class test_loss_net_2(nn.Module):
     def __init__(self, weight, size_average=True, channel=3):
-        super(test_loss_net, self).__init__()
-        self.pixel_loss = MSE(size_average=size_average)
+        super(test_loss_net_2, self).__init__()
+        self.pixel_loss = MAE(size_average=size_average)
         self.ssim = SSIM(size_average=size_average, max_val=1, channel=channel)
         self.VGG_LOSS = VGG_LOSS(size_average=size_average)
         self.weight = weight
@@ -362,11 +362,76 @@ class test_loss_net(nn.Module):
         loss_for_save = [0] * len(dehazy) * 3
         pixel_loss = [0] * len(dehazy)
         for i in range(len(dehazy)):
-            pixel_loss[i] = self.pixel_loss(dehazy[i], gth)
+            pixel_loss[i] = self.pixel_loss(dehazy, gth)
             loss_for_save[i] = pixel_loss[i].item()
             # print(pixel_loss[i].shape)
 
         # 计算ssim损失
+        ssim_loss = [0] * len(dehazy)
+        for i in range(len(dehazy)):
+            ssim_loss[i] = self.ssim(dehazy, gth)
+            loss_for_save[i + len(dehazy)] = ssim_loss[i].item()
+
+        # 计算vgg损失
+        vgg_loss = [0] * len(dehazy)
+        for i in range(len(dehazy)):
+            vgg_loss[i] = self.VGG_LOSS(dehazy, gth)
+            loss_for_save[i + len(dehazy) * 2] = vgg_loss[i].item()
+
+        return loss_for_save
+
+
+class test_loss_net_1(nn.Module):
+    def __init__(self, weight, size_average=True, channel=3):
+        super(test_loss_net_1, self).__init__()
+        self.pixel_loss = MAE(size_average=size_average)
+        self.ssim = SSIM(size_average=size_average, max_val=1, channel=channel)
+        self.VGG_LOSS = VGG_LOSS(size_average=size_average)
+        self.weight = weight
+
+    def forward(self, dehazy, gth):
+        # 计算逐像素损失
+        # loss_for_save = [0] * 3 * (len(dehazy) * 2 - 1)
+        # pixel_loss = [0] * len(dehazy)
+        # print(dehazy[0].size())
+        # print(gth.size())
+        temp = [0] * len(dehazy)
+        for i in range(len(dehazy)):
+            # pixel_loss[i] = self.pixel_loss(dehazy[i], gth)
+            temp[i] = self.pixel_loss(dehazy[i], gth).item()
+        loss_for_save = temp
+
+        temp = [0] * len(dehazy)
+        for i in range(len(dehazy)):
+            temp[i] = self.ssim(dehazy[i], gth).item()
+        loss_for_save += temp
+
+        temp = [0] * len(dehazy)
+        for i in range(len(dehazy)):
+            temp[i] = self.VGG_LOSS(dehazy[i], gth).item()
+        loss_for_save += temp
+
+        # print(pixel_loss[i].shape)
+        temp = [0] * (len(dehazy) - 1)
+        for i in range(len(dehazy) - 1):
+            temp[i] = self.pixel_loss(dehazy[i], dehazy[i + 1]).item()
+        loss_for_save += temp
+        # (len(loss_for_save))
+
+        temp = [0] * (len(dehazy) - 1)
+        for i in range(len(dehazy) - 1):
+            temp[i] = self.ssim(dehazy[i], dehazy[i + 1]).item()
+        loss_for_save += temp
+
+        temp = [0] * (len(dehazy) - 1)
+        for i in range(len(dehazy) - 1):
+            temp[i] = self.VGG_LOSS(dehazy[i], dehazy[i + 1]).item()
+        loss_for_save += temp
+
+        return loss_for_save
+
+
+'''
         ssim_loss = [0] * len(dehazy)
         for i in range(len(dehazy)):
             ssim_loss[i] = self.ssim(dehazy[i], gth)
@@ -377,8 +442,7 @@ class test_loss_net(nn.Module):
         for i in range(len(dehazy)):
             vgg_loss[i] = self.VGG_LOSS(dehazy[i], gth)
             loss_for_save[i + len(dehazy) * 2] = vgg_loss[i].item()
-
-        return loss_for_save
+'''
 
 
 class gap_compute_net(nn.Module):

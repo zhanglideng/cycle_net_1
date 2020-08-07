@@ -78,21 +78,20 @@ def write_excel_every_val(sheet, line, epoch, name, loss):
     return line + 1
 
 
-def write_excel_test(sheet, line, name, loss):
-    # 0_a=0.86_b=1.01
-    # num = int(name[:4])
+def name_div(name):
     num = int(name.split('_')[0])
-    if len(name) == 4:
+    if len(name) == 5:
         air_light = 0.0
         beta = 0.0
     else:
         air_light = float(name.split('_')[1].split('=')[1])
         beta = float(name.split('_')[2].split('=')[1])
-    sheet.write(line, 0, num)
-    sheet.write(line, 1, air_light)
-    sheet.write(line, 2, beta)
-    for i in range(len(loss)):
-        sheet.write(line, i + 3, round(loss[i], 6))
+    return [num, air_light, beta]
+
+
+def write_excel_test(sheet, line, content):
+    for i in range(len(content)):
+        sheet.write(line, i, content[i])
     return line + 1
 
 
@@ -113,13 +112,9 @@ def init_test_excel(row):
     workbook = xlwt.Workbook()
     sheet1 = workbook.add_sheet('test', cell_overwrite_ok=True)
     # 通过excel保存训练结果（训练集验证集loss，学习率，训练时间，总训练时间）
-    row0 = ["num", "A", "beta",
-            "J1_l2", "J2_l2", "J3_l2", "J4_l2", "J5_l2",
-            "J1_ssim", "J2_ssim", "J3_ssim", "J4_ssim", "J5_ssim",
-            "J1_vgg", "J2_vgg", "J3_vgg", "J4_vgg", "J5_vgg"]
-    for i in range(0, len(row0)):
-        print('写入test_excel')
-        sheet1.write(0, i, row0[i], set_style('Times New Roman', 220, True))
+    print('写入test_excel')
+    for i in range(0, len(row)):
+        sheet1.write(0, i, row[i], set_style('Times New Roman', 220, True))
     return workbook, sheet1
 
 
