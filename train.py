@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser(description='Hyper-parameters for CycleDehazeNe
 parser.add_argument('-learning_rate', help='Set the learning rate', default=5e-4, type=float)
 parser.add_argument('-batch_size', help='Set the training batch size', default=2, type=int)
 parser.add_argument('-accumulation_steps', help='Set the accumulation steps', default=16, type=int)
-parser.add_argument('-drop_rate', help='Set the dropout ratio', default=0.3, type=int)
+parser.add_argument('-drop_rate', help='Set the dropout ratio', default=0, type=int)
 parser.add_argument('-itr_to_excel', help='Save to excel after every n trainings', default=128, type=int)
 parser.add_argument('-epoch', help='Set the epoch', default=200, type=int)
 parser.add_argument('-category', help='Set image category (NYU or NTIRE2018?)', default='NYU', type=str)
@@ -26,7 +26,7 @@ parser.add_argument('-gth_train', help='Whether to add Gth training', default=Fa
 parser.add_argument('-inter_train', help='Is the training interrupted', default=False, type=bool)
 parser.add_argument('-MAE_or_MSE', help='Use MSE or MAE', default='MAE', type=str)
 parser.add_argument('-IN_or_BN', help='Use IN or BN', default='IN', type=str)
-parser.add_argument('-itr_drop_loss_type', help='Iterative drop loss type', default=0.5, type=str)
+parser.add_argument('-itr_drop_loss_type', help='Iterative drop loss type', default=1, type=str)
 parser.add_argument('-loss_weight', help='Set the loss weight',
                     default=[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], type=list)
 parser.add_argument('-excel_row', help='The excel row',

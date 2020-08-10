@@ -43,8 +43,8 @@ fog_range = [0.8, 1.2]
 使用png格式压缩
 加速运算过程
 
-高最小值为608 
-宽最小值为448 
+高最小值为608
+宽最小值为448
 '''
 
 
@@ -87,7 +87,7 @@ if __name__ == '__main__':
     start = time.time()
     count = 0
     for i in range(length):
-        print('dealing:' + str(i) + '.png')
+        print('dealing:' + str(i) + '.bmp')
         if i < length * 0.8 - 1:
             hazy_path = train_hazy_path
             gth_path = train_gth_path
@@ -118,8 +118,8 @@ if __name__ == '__main__':
                 g = Image.fromarray(image_patch[1]).convert('L')
                 b = Image.fromarray(image_patch[2]).convert('L')
                 img = Image.merge("RGB", (r, g, b))
-                save_path = gth_path + '0' * (5 - len(str(count))) + str(count) + '.png'
-                img.save(save_path, 'png', optimize=True)
+                save_path = gth_path + '0' * (5 - len(str(count))) + str(count) + '.bmp'
+                img.save(save_path, 'bmp')
 
                 for rand in range(haze_num):
                     # image_out = np.zeros((3, depth.shape[0], depth.shape[1]))
@@ -138,11 +138,11 @@ if __name__ == '__main__':
                     image_out[image_out > 255] = 255
 
                     image_path = hazy_path + '0' * (5 - len(str(count))) + str(
-                        count) + '_a=' + '%.02f' % fog_A + '_b=' + '%.02f' % fog_density + '.png'
+                        count) + '_a=' + '%.02f' % fog_A + '_b=' + '%.02f' % fog_density + '.bmp'
                     image_out = np.swapaxes(image_out, 0, 2)
                     image_out = np.swapaxes(image_out, 0, 1)
                     image_out = Image.fromarray(image_out.astype('uint8')).convert('RGB')
-                    image_out.save(image_path, 'png', optimize=True)
+                    image_out.save(image_path, 'bmp')
                 print(count)
                 count += 1
         end = time.time()
