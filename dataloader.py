@@ -54,11 +54,11 @@ class Cycle_DataSet(Dataset):
         haze_name = self.haze_data_list[idx][:-4]
         gth_name = haze_name.split('_')[0]
         # gth_name = haze_name[:5]
-        gt_image = Image.open(self.gt_path + gth_name + '.png')
+        gt_image = Image.open(self.gt_path + gth_name + '.bmp')
         if len(haze_name) == 5:
             haze_image = gt_image
         else:
-            haze_image = Image.open(self.haze_path + haze_name + '.png')
+            haze_image = Image.open(self.haze_path + haze_name + '.bmp')
         # 数据增强
         if self.flag == 'train':
             haze_image, gt_image = data_aug(haze_image, gt_image)

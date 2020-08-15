@@ -32,8 +32,10 @@ parser.add_argument('-loss_weight', help='Set the loss weight',
 parser.add_argument('-excel_row', help='The excel row',
                     default=[["epoch", "itr", "J1_l2", "J2_l2", "J3_l2", "J1_ssim",
                               "J2_ssim", "J3_ssim", "J1_vgg", "J2_vgg", "J3_vgg", "loss"],
-                             ["epoch", "J1_l2", "J2_l2", "J3_l2", "J1_ssim", "J2_ssim", "J3_ssim",
-                              "J1_vgg", "J2_vgg", "J3_vgg", "val_loss", "train_loss"]], type=list)
+                             ["epoch", "J1_l2", "J2_l2", "J3_l2", "J2-J1_l2", "J3_J2_l2",
+                              "J1_ssim", "J2_ssim", "J3_ssim", "J2-J1_ssim", "J3-J2_ssim",
+                              "J1_vgg", "J2_vgg", "J3_vgg", "J2-J1_vgg", "J3-J2_vgg",
+                              "val_loss", "train_loss"]], type=list)
 args = parser.parse_args()
 
 learning_rate = args.learning_rate  # 学习率
@@ -89,13 +91,14 @@ excel_save = save_path + 'result.xls'  # 保存excel的路径
 mid_save_ed_path = './mid_model/cycle_model.pt'  # 保存的中间模型，用于意外停止后继续训练。
 log = 'learning_rate: {}\nbatch_size: {}\nepoch: {}\ndrop_rate: {}\ncategory: {}\n' \
       'Is_gth_train: {}\nloss_weight: {}\nIs_pre_model: {}\ntotal_params: {}\nsave_file_name: {}\n' \
-      'MAE_or_MSE: {}\nIs_inter_train: {}\naccumulation_steps: {}\nnorm_type: {}\nitr_drop_loss_type: {}'.format(learning_rate, batch_size,
-                                                                                         epoch, drop_rate, category,
-                                                                                         Is_gth_train, weight,
-                                                                                         Is_pre_model, total_params,
-                                                                                         save_path, MAE_or_MSE,
-                                                                                         Is_inter_train,
-                                                                                         accumulation_steps, norm_type, itr_drop_loss_type)
+      'MAE_or_MSE: {}\nIs_inter_train: {}\naccumulation_steps: {}\nnorm_type: {}\nitr_drop_loss_type: {}'.format(
+    learning_rate, batch_size,
+    epoch, drop_rate, category,
+    Is_gth_train, weight,
+    Is_pre_model, total_params,
+    save_path, MAE_or_MSE,
+    Is_inter_train,
+    accumulation_steps, norm_type, itr_drop_loss_type)
 
 print('--- Hyper-parameters for training ---')
 print(log)

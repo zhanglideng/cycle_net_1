@@ -107,7 +107,13 @@ for haze_name, haze_image, gt_image in test_data_loader:
         temp_J[0] = net(haze_image, haze_image)
         for i in range(test_round - 1):
             temp_J[i + 1] = net(temp_J[i], haze_image)
+        if Is_save_image:
+            for k in range(test_round):
+                im_output_for_save = get_image_for_save(temp_J[k])
+                filename = '{}_{}.bmp'.format(haze_name[0], k)
+                im_output_for_save.save(os.path.join(save_path, filename))
         loss_for_save_1 = loss_net_1(temp_J, gt_image)
+
         loss[0] = image_gap(temp_J[0], temp_J[1]).item()
         for i in range(test_round-2):
             loss[i + 1] = image_gap(temp_J[i + 1], temp_J[i + 2]).item()
