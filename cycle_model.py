@@ -62,6 +62,36 @@ class DenseLayer(nn.Module):
         if self.drop_rate > 0:
             out = F.dropout(out, p=self.drop_rate, inplace=False, training=self.training)
         return torch.cat([x, out], 1)
+'''
+class Bottleneck(nn.Module):
+    def __init__(self, in_channels, growth_rate, drop_rate, norm_type):
+        super().__init__()
+        inner_channel = 4 * growth_rate
+
+        self.bottle_neck = nn.Sequential()
+        if norm_type == 'IN':
+            self.bottle_neck.add_module('in0', nn.InstanceNorm2d(in_channels))
+        else:
+            self.bottle_neck.add_module('bn0', nn.BatchNorm2d(in_channels))
+        self.bottle_neck.add_module('relu0', nn.ReLU(inplace=True))
+        self.bottle_neck.add_module('conv0', nn.Conv2d(in_channels, inner_channel, kernel_size=1, bias=False))
+        if norm_type == 'IN':
+            self.bottle_neck.add_module('in1', nn.InstanceNorm2d(inner_channel))
+        else:
+            self.bottle_neck.add_module('bn1', nn.BatchNorm2d(inner_channel))
+        self.bottle_neck.add_module('relu1', nn.ReLU(inplace=True))
+        self.bottle_neck.add_module('conv1',
+                                    nn.Conv2d(inner_channel, growth_rate, kernel_size=3, padding=1, bias=False))
+
+        self.drop_rate = drop_rate
+
+    def forward(self, x):
+        if self.drop_rate > 0:
+            out = F.dropout(self.bottle_neck(x), p=self.drop_rate, training=self.training)
+        else:
+            out = self.bottle_neck(x)
+        return torch.cat([x, out], 1)
+'''
 
 
 class DenseBlock(nn.Module):
