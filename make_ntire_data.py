@@ -14,12 +14,9 @@ def Scharr_demo(image):
     return int(np.mean(gradxy))
 
 
-if os.path.exists('/input'):
-    ori_data_path = '/input/data/ntire_2018'
-    cut_data_path = '/input/data/cut_ntire_cycle'
-else:
-    ori_data_path = '/home/ljh/zhanglideng/data/ntire_2018'
-    cut_data_path = '/home/ljh/zhanglideng/data/cut_ntire_cycle'
+ori_data_path = '/home/liu/zhanglideng/data/ntire_2018'
+cut_data_path = '/home/liu/zhanglideng/data/cut_ntire_cycle'
+
 ori_hazy_path = [ori_data_path + '/train_hazy/', ori_data_path + '/val_hazy/', ori_data_path + '/test_hazy/']
 ori_gth_path = [ori_data_path + '/train_gth/', ori_data_path + '/val_gth/', ori_data_path + '/test_gth/']
 cut_hazy_path = [cut_data_path + '/train_hazy/', cut_data_path + '/flat_train_hazy/',
@@ -86,7 +83,7 @@ for i in range(len(ori_hazy_path)):
                     gth_stddv = int(np.mean(gth_stddv))
                     # haze_grad = Scharr_demo(haze_patch)
                     # gth_grad = Scharr_demo(gth_patch)
-                    if gth_stddv >= 10:
+                    if gth_stddv >= 20:
                         hazy_path = cut_hazy_path[i * 2]
                         gth_path = cut_gth_path[i * 2]
                         haze_name = hazy_path + str(count) + '.jpg'

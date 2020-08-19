@@ -19,7 +19,7 @@ parser.add_argument('-accumulation_steps', help='Set the accumulation steps', de
 parser.add_argument('-drop_rate', help='Set the dropout ratio', default=0, type=int)
 parser.add_argument('-itr_to_excel', help='Save to excel after every n trainings', default=128, type=int)
 parser.add_argument('-epoch', help='Set the epoch', default=200, type=int)
-parser.add_argument('-category', help='Set image category (NYU or NTIRE2018?)', default='NYU', type=str)
+parser.add_argument('-category', help='Set image category (NYU or NTIRE?)', default='NYU', type=str)
 parser.add_argument('-data_path', help='Set the data_path', default='/home/liu/zhanglideng', type=str)
 parser.add_argument('-pre_model', help='Whether to use a pre-trained model', default=False, type=bool)
 parser.add_argument('-gth_train', help='Whether to add Gth training', default=False, type=bool)
@@ -28,7 +28,7 @@ parser.add_argument('-MAE_or_MSE', help='Use MSE or MAE', default='MAE', type=st
 parser.add_argument('-IN_or_BN', help='Use IN or BN', default='IN', type=str)
 parser.add_argument('-itr_drop_loss_type', help='Iterative drop loss type', default=1, type=str)
 parser.add_argument('-loss_weight', help='Set the loss weight',
-                    default=[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], type=list)
+                    default=[1, 1, 1, 1, 1] * 3, type=list)
 parser.add_argument('-excel_row', help='The excel row',
                     default=[["epoch", "itr", "J1_l2", "J2_l2", "J3_l2", "J1_ssim",
                               "J2_ssim", "J3_ssim", "J1_vgg", "J2_vgg", "J3_vgg", "loss"],
@@ -75,10 +75,10 @@ print("Total_params: {}".format(total_params))
 
 # 读取数据集目录
 if category == 'NYU':
-    train_hazy_path = data_path + '/data/nyu_cycle/train_hazy/'
-    val_hazy_path = data_path + '/data/nyu_cycle/val_hazy/'
-    train_gth_path = data_path + '/data/nyu_cycle/train_gth/'
-    val_gth_path = data_path + '/data/nyu_cycle/val_gth/'
+    train_hazy_path = data_path + '/data/nyu_cycle/train_hazy_patch/'
+    val_hazy_path = data_path + '/data/nyu_cycle/val_hazy_patch/'
+    train_gth_path = data_path + '/data/nyu_cycle/train_gth_patch/'
+    val_gth_path = data_path + '/data/nyu_cycle/val_gth_patch/'
 else:
     train_hazy_path = data_path + '/data/cut_ntire_cycle/train_hazy/'
     val_hazy_path = data_path + '/data/cut_ntire_cycle/val_hazy/'
