@@ -1,7 +1,7 @@
 import argparse
 import os
 from torchvision import transforms
-from dataloader import Cycle_DataSet
+from dataloader import *
 from torch.utils.data import DataLoader
 import torch
 from loss import *
@@ -13,6 +13,7 @@ parser = argparse.ArgumentParser(description='Hyper-parameters for CycleDehazeNe
 parser.add_argument('-Is_save_image', help='Whether to save the image', default=True, type=bool)
 parser.add_argument('-test_round', help='How many rounds of testing?', default=10, type=int)
 parser.add_argument('-data_path', help='The data path', default='/home/liu/zhanglideng', type=str)
+parser.add_argument('-category', help='Set image category (NYU or NTIRE?)', default='NTIRE', type=str)
 parser.add_argument('-gth_test', help='Whether to add Gth testing', default=False, type=bool)
 parser.add_argument('-batch_size', help='The batch size', default=32, type=int)
 parser.add_argument('-weight', help='The loss weight', default=[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], type=list)
@@ -52,11 +53,18 @@ batch_size = args.batch_size  # 测试批大小
 gth_test = args.gth_test  # 是否测试无雾图像
 excel_row = args.excel_row  # excel的列属性名
 weight = args.weight  # 损失函数的权重
+category = args.category  # 选择测试的数据集
 
-test_hazy_path = data_path + '/data/nyu_cycle/test_hazy/'
-test_gth_path = data_path + '/data/nyu_cycle/test_gth/'
-val_hazy_path = data_path + '/data/nyu_cycle/val_hazy/'
-val_gth_path = data_path + '/data/nyu_cycle/val_gth/'
+if category == 'NYU':
+    test_hazy_path = data_path + '/data/nyu_cycle/test_hazy/'
+    test_gth_path = data_path + '/data/nyu_cycle/test_gth/'
+    val_hazy_path = data_path + '/data/nyu_cycle/val_hazy/'
+    val_gth_path = data_path + '/data/nyu_cycle/val_gth/'
+else:
+    test_hazy_path = data_path + '/data/cut_ntire_cycle/test_hazy/'
+    test_gth_path = data_path + '/data/cut_ntire_cycle/test_gth/'
+    val_hazy_path = data_path + '/data/cut_ntire_cycle/val_hazy/'
+    val_gth_path = data_path + '/data/cut_ntire_cycle/val_gth/'
 
 # 加载训练好的模型
 file_path = find_pretrain('cycle_result')
@@ -82,15 +90,19 @@ f, sheet_test = init_test_excel(row=excel_row)
 transform = transforms.Compose([transforms.ToTensor()])
 test_path_list = [test_hazy_path, test_gth_path]
 val_path_list = [val_hazy_path, val_gth_path]
-test_data = Cycle_DataSet(transform, is_gth_train=gth_test, path=test_path_list, flag='test')
-val_data = Cycle_DataSet(transform, is_gth_train=gth_test, path=test_path_list, flag='val')
+if category == 'NYU':
+    test_data = Cycle_DataSet(transform, is_gth_train=gth_test, path=test_path_list, flag='test')
+    val_data = Cycle_DataSet(transform, is_gth_train=gth_test, path=test_path_list, flag='val')
+else:
+    test_data = Ntire_DataSet(transform, is_gth_train=gth_test, path=test_path_list, flag='test')
+    val_data = Ntire_DataSet(transform, is_gth_train=gth_test, path=test_path_list, flag='val')
 test_data_loader = DataLoader(test_data, batch_size=1, shuffle=False, num_workers=128)
 val_data_loader = DataLoader(val_data, batch_size=1, shuffle=False, num_workers=128)
 image_gap = MAE(size_average=True)
 # 计算最佳的迭代差距常量
 
 temp_J = [0] * test_round
-loss = [0] * (test_round-1)
+loss = [0] * (test_round - 1)
 # b_gap = [0] * len(val_data_loader)
 # a_gap = [0] * len(val_data_loader)
 # sum_gap = 0
@@ -115,7 +127,7 @@ for haze_name, haze_image, gt_image in test_data_loader:
         loss_for_save_1 = loss_net_1(temp_J, gt_image)
 
         loss[0] = image_gap(temp_J[0], temp_J[1]).item()
-        for i in range(test_round-2):
+        for i in range(test_round - 2):
             loss[i + 1] = image_gap(temp_J[i + 1], temp_J[i + 2]).item()
             if loss[i] < loss[i + 1] or loss[i + 1] < gap:
                 break
